@@ -8,11 +8,12 @@ class MainWindow(QtWidgets.QWidget):
         self.setWindowTitle("Global Hotkey Demo")
         lay = QtWidgets.QVBoxLayout(self)
         self.btn = QtWidgets.QPushButton("Проверка")
-        self.btn.clicked.connect(self.on_action)
+        # self.btn.clicked.connect(self.on_action)
         self.log = QtWidgets.QPlainTextEdit("Начало лога")
         self.log.setReadOnly(True)
         lay.addWidget(self.btn)
         lay.addWidget(self.log)
+        self.resize(420, 260)
 
     @QtCore.pyqtSlot()
     def on_action(self):

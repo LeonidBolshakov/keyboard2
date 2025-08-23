@@ -6,7 +6,7 @@ constants.py — неизменяемые константы.
 - Предоставляет «только чтение» через объект C, чтобы избежать случайной перезаписи.
 
 Использование:
-    from constants import C
+    from SRC.constants import C
     level_name = C.CONSOLE_LOG_LEVEL_DEF
 """
 
@@ -52,14 +52,15 @@ class _Const:
     }
 
     # --- Сообщение single
-    SINGLE_TEXT = "Экземпляр уже работает"
-    SINGLE_TITLE = "Уже запущено"
+    SINGLE_TEXT = "Экземпляр программы уже работает"
 
     # --- Тексты ошибок
     TEXT_ERROR_GET_VAR_1 = "Метод get_var класса Variables.\nПервый параметр {name} имеет тип отличный от str"
     TEXT_ERROR_GET_VAR_2 = "Метод get_var класса Variables.\nВторой параметр {default} имеет тип отличный от str"
     TEXT_ERROR_LOG_LEVEL_NAME = "Некорректное значение уровня для {env_name}: {name}"
-    TEXT_ERROR_REGISTER_HOTKEY = "Отказано в регистрации горячей клавиши  hk_id={hk_id} mods={mods} vk={vk}"
+    TEXT_ERROR_REGISTER_HOTKEY = (
+        "Отказано в регистрации горячей клавиши  hk_id={hk_id} mods={mods} vk={vk}"
+    )
     TEXT_ERROR_START_APP = "Фатальная ошибка на старте приложения {e}"
     TEXT_ERROR_TUNE_LOGGER = "Настройка логирования завершилась ошибкой {e}"
 
