@@ -1,4 +1,4 @@
-"""GUI‑приложение на PyQt6 с системным треем, глобальными горячими клавишами и блокировкой
+"""GUI приложение на PyQt6 с системным треем, глобальными горячими клавишами и блокировкой
 второго экземпляра.
 
 Назначение модуля
@@ -11,8 +11,8 @@
 -----------------
 - :class:`MainApp` — объединяет инициализацию Qt, UI, контроллера, трея,
   глобальных и низкоуровневых горячих клавиш.
-- Глобальные константы :data:`VK_H` и :data:`HK_MAIN` — код клавиши и логический
-  идентификатор горячей клавиши Ctrl+H.
+- Глобальные константы :data:`VK_3, VK_4, VK_5, VK_9` и :data:`HK_MAIN` — коды клавиш и логический
+  идентификатор горячей клавиши.
 
 Зависимости
 -----------
@@ -37,7 +37,7 @@ from PyQt6 import QtWidgets
 from SRC.constants import C
 from SRC.system_tray import Tray
 from SRC.single_instance import SingleInstance
-from SRC.UI.main_window import MainWindow
+from SRC.main_window import MainWindow
 from SRC.controller import Controller
 from SRC.hotkey_win import (
     register_hotkey,
@@ -50,7 +50,11 @@ from ll_keyboard import KeyboardHook, VK_CAPITAL, VK_SCROLL
 
 
 # Код виртуальной клавиши и ID горячих клавиш
-VK_H: int = 0x48  # Код клавиши H
+VK_3: int = 0x33  # Код клавиши '3'
+VK_4: int = 0x34  # Код клавиши '4'
+VK_5: int = 0x35  # Код клавиши '5'
+VK_9: int = 0x39  # Код клавиши '9'
+
 HK_MAIN: int = 1  # Логический идентификатор горячей клавиши
 
 logger = logging.getLogger(__name__)
@@ -92,10 +96,9 @@ class MainApp:
             raise SystemExit(1)
 
         self.tray()
-        self.global_hotkey()
+        self.global_hotkeys()
         self.single_hotkeys()
 
-        self.ui.show()
         return self.app.exec()
 
     def can_continue(self) -> bool:
@@ -125,7 +128,10 @@ class MainApp:
         app.setQuitOnLastWindowClosed(
             False
         )  # Оставляем app в памяти даже при закрытии всех окон
-        app.aboutToQuit.connect(self.cleanup)  # type: ignore[arg-type]
+        try:
+            app.aboutToQuit.connect(self.cleanup)  # type: ignore[arg-type]
+        except Exception as e:
+            print('Ошибка подключения сигнала:', e)
         return app
 
     def tray(self) -> None:
@@ -133,12 +139,16 @@ class MainApp:
         Tray(
             self.app,
             on_quit=self.do_quit,
-            actions={"Тест диалога": self.ui.on_action},
+            actions={"Вызов диалога": self.ui.start_dialogue},
         )
 
-    def global_hotkey(self) -> None:
-        """Регистрирует глобальную горячую клавишу Ctrl+H и фильтр нативных событий."""
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_H)
+    def global_hotkeys(self) -> None:
+        """Регистрирует глобальные горячие клавиши и фильтр нативных событий."""
+        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_3)
+        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_4)
+        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_5)
+        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_9)
+
         self.app.installNativeEventFilter(self.hk_filter)
 
     def single_hotkeys(self) -> None:

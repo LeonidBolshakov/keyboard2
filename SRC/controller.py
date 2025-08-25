@@ -11,12 +11,19 @@
     - Класс Controller с методами для обработки событий.
 """
 
-import ctypes
-
-# Импортируем функцию WinAPI для проверки состояния клавиш
-GetAsyncKeyState = ctypes.windll.user32.GetAsyncKeyState
-
 # Коды виртуальных клавиш: левый и правый Ctrl
+
+from SRC import ll_keyboard
+
+def safe_slot(fn):
+    def _w(*args, **kwargs):
+        try:
+            return fn(*args, **kwargs)
+        except Exception as e:
+            print(f'Ошибка в слоте {fn.__name__}:', e)
+    return _w
+
+
 VK_LCONTROL, VK_RCONTROL = 0xA2, 0xA3
 
 
@@ -32,6 +39,9 @@ class Controller:
         """
         self.ui = ui
 
+    @safe_slot
+
+
     def on_hotkey(self, hk_id: int, mods: int, vk: int):
         """
         Обработчик глобальной горячей клавиши WM_HOTKEY.
@@ -45,19 +55,22 @@ class Controller:
         mods : int
             Маска модификаторов (Alt, Ctrl, Shift, Win).
         """
-        # Проверяем отдельно состояние левого и правого Ctrl
-        left = bool(GetAsyncKeyState(VK_LCONTROL) & 0x8000)
-        right = bool(GetAsyncKeyState(VK_RCONTROL) & 0x8000)
 
         # Добавляем сообщение в UI
-        self.ui.append(
-            f"WM_HOTKEY id={hk_id} vk=0x{vk:X} mods=0x{mods:X} L={left} R={right}"
-        )
+        print(f"WM_HOTKEY id={hk_id} vk=0x{vk:X} mods=0x{mods:X}")
+
+    @safe_slot
+
 
     def on_caps(self):
         """Вызывается при нажатии CapsLock."""
-        self.ui.append("CapsLock pressed")
+        ll_keyboard.change_keyboard_case()
+
+        return True
+
+    @safe_slot
+
 
     def on_scroll(self):
         """Вызывается при нажатии ScrollLock."""
-        self.ui.append("ScrollLock pressed")
+        self.ui.start_dialogue()

@@ -13,6 +13,8 @@ constants.py — неизменяемые константы.
 import logging
 from pathlib import Path
 
+from PyQt6.QtGui import QColor
+
 
 class _Const:
     """
@@ -51,18 +53,79 @@ class _Const:
         "CRITICAL": logging.CRITICAL,
     }
 
+    # --- Сообщение об удачной загрузке программы
+    COLOR_MESSAGE_START_PROGRAM = QColor("green")
+    HOTKEY_BEGIN_DIALOGUE = "scroll lock"  # Клавиша вызова окна замены регистров
+    TEXT_MESSAGE_START_PROGRAM = (
+        "Запущена программа замены регистра выделенного текста. Горячая клавиша {key}"
+    )
+    TIME_MESSAGE_START_PROGRAM = (
+        0.3  # Время высвечивания сообщения о запуске программы (в секундах)
+    )
+
+    # --- Сообщения логирования
+    LOGGER_TEXT_CHANGE = "Заменённый текст *{text}*"
+    LOGGER_TEXT_ERROR_READ_CLIPBOARD = "Из Clipboard считан пустой текст"
+    LOGGER_TEXT_LOAD_PROGRAM = "Программа загружена"
+    LOGGER_TEXT_NO_IN_CLIPBOARD = (
+        "Выделенный текст не попал в буфер обмена. Время ожидания - {time_delay}"
+    )
+    LOGGER_TEXT_ORIGINAL = "Текст пользователя *{text}*"
+    LOGGER_TEXT_RESTORED_CLIPBOARD = "Текст +*{clipboard_text}*+ возвращён буфер обмена"
+    LOGGER_TEXT_START_DIALOGUE = "Начало диалога. Окно - {title}"
+    LOGGER_TEXT_STOP_DIALOGUE = "Диалог завершён"
+    LOGGER_TEXT_UNLOAD_PROGRAM = "Программа выгружена из памяти"
+
+    # --- Работа с буфером обмена
+    MAX_CLIPBOARD_READS = 2  # максимально число считываний буфера обмена
+    TIME_DELAY_CTRL_C = 0.1  # Задержка, в секундах, после нажатия Ctrl+c
+    TIME_DELAY_CTRL_V = 0.1  # Задержка, в секундах, после нажатия Ctrl+v
+
+    # --- Пути программ
+    UI_PATH_FROM_EXE = r"_internal\dialogue.ui"
+
+    # --- Настройки кнопок
+    MIN_WIDTH_BUTTON = 170  # Минимальная ширина первых двух кнопок
+    QSS_BUTTON = "font-weight: bold; font-size: 12pt; "
+    QSS_NO = "color: darkblue;"
+    QSS_TEXT = "color: mediumblue;"  # Силь текстовых полей диалога
+    QSS_YES = "color: blue;"
+    TEXT_CANCEL_BUTTON = "Выгрузить программу\nНажми 3"
+    TEXT_NO_BUTTON = "Не заменять\nНажми 2/Esc"
+    TEXT_YES_BUTTON = "Заменить\nНажми 1"
+
     # --- Сообщение single
     SINGLE_TEXT = "Экземпляр программы уже работает"
 
     # --- Тексты ошибок
+    TEXT_CRITICAL_ERROR = (
+        "Не предусмотренная программой команда закрытия диалога command={command}"
+    )
+    TEXT_ERROR_CONNECT = (
+        "Ошибка при назначении обработчиков кнопкам или другим объектам {e}"
+    )
+    TEXT_ERROR_CUSTOM_UI = "Ошибка при настройке пользовательских интерфейсов {e}"
     TEXT_ERROR_GET_VAR_1 = "Метод get_var класса Variables.\nПервый параметр {name} имеет тип отличный от str"
     TEXT_ERROR_GET_VAR_2 = "Метод get_var класса Variables.\nВторой параметр {default} имеет тип отличный от str"
+    TEXT_ERROR_INIT_BUTTON = "Ошибка инициализации кнопок всплывающего окна {e}"
+    TEXT_ERROR_LOAD_UI = (
+        "Ошибка загрузки UI (Описаний окна, подготовленных QtDesigner - {e}"
+    )
     TEXT_ERROR_LOG_LEVEL_NAME = "Некорректное значение уровня для {env_name}: {name}"
+    TEXT_ERROR_PROCESSING_CLIPBOARD = " Ошибка при чтении из буфера обмена {e}"
     TEXT_ERROR_REGISTER_HOTKEY = (
         "Отказано в регистрации горячей клавиши  hk_id={hk_id} mods={mods} vk={vk}"
     )
+    TEXT_ERROR_REPLACE_TEXT = "Ошибка при формировании/записи заменяющего текста"
     TEXT_ERROR_START_APP = "Фатальная ошибка на старте приложения {e}"
+    TEXT_ERROR_PUT_ORIGINAL_TEXT = (
+        "Ошибка при отображении в сплывающее окно текста пользователя {e}"
+    )
+    TEXT_ERROR_SHOW_REPLACEMENTS_TEXT = (
+        "Ошибка при формировании/отображении замещающего текст {e}"
+    )
     TEXT_ERROR_TUNE_LOGGER = "Настройка логирования завершилась ошибкой {e}"
+    TEXT_WINDOW_NOT_FOUND = "Название окна неизвестно"
 
     def __setattr__(self, key, value):
         """

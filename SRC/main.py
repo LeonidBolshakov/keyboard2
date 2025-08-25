@@ -51,7 +51,7 @@ def main() -> int:
         sys.exit(int(e.code) if hasattr(e, "code") else 0)
     except Exception as e:
         # Записываем в лог не перехваченное исключение и выходим с кодом 1
-        logger.exception(C.TEXT_ERROR_TUNE_LOGGER.format(e=e))
+        logger.exception(C.TEXT_ERROR_START_APP.format(e=e))
         sys.exit(1)
     # Возвращаем код, чтобы sys.exit(main()) завершил процесс тем же кодом
     return int(app_code)

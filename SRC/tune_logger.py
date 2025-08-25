@@ -48,7 +48,7 @@ class TuneLogger:
     добавляет новые, выставляет уровни и формат.
 
 
-    add_handlers() -> None
+    _add_handlers() -> None
     Добавляет обработчики в root-логгер без очистки.
 
 
@@ -91,6 +91,11 @@ class TuneLogger:
         self.console_handler.setLevel(console_log_level)
         self.file_handler.setLevel(file_log_level)
 
+        logging.getLogger("PyQt6.uic").setLevel(logging.WARNING)
+
+        root = logging.getLogger()
+        root.setLevel(min(console_log_level, file_log_level))
+
     def _set_log_format(self) -> None:
         """Установка формата логов"""
         fmt = logging.Formatter(C.LOG_FORMAT)
@@ -124,18 +129,16 @@ class TuneLogger:
             delay=True,
         )
 
-    def add_handlers(self) -> None:
-        """Добавляет текущие обработчики к головной логгер (без очистки)."""
-        root = logging.getLogger()
-        root.addHandler(self.console_handler)
-        root.addHandler(self.file_handler)
-
     @staticmethod
     def _remove_logging() -> None:
         """Удалить все обработчики у головного логгера."""
         root = logging.getLogger()
         for h in root.handlers[:]:
             root.removeHandler(h)
+            try:
+                h.close()
+            except Exception:
+                pass
 
     def _get_log_level(self, env_name: str, default_name: str) -> int:
         """

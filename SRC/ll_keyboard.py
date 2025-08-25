@@ -29,12 +29,24 @@
 from __future__ import annotations
 
 import ctypes
+import time
 from ctypes import wintypes
 from typing import Callable
 
 WH_KEYBOARD_LL = 13  # Идентификатор низкоуровневого клавиатурного хука
 WM_KEYDOWN, WM_SYS_KEYDOWN = 0x0100, 0x0104  # Идентификатор сообщения о нажатии клавиши
-VK_CAPITAL, VK_SCROLL = 0x14, 0x91  # коды CapsLock и ScrollLock
+WM_KEYUP = 0x0100, 0x0101
+WM_SYSKEYDOWN, WM_SYSKEYUP = 0x0104, 0x0105
+
+# Флаг для события клавиатуры:
+KEY_EVENT_F_KEYUP = 0x0002  # означает "отпускание клавиши"
+
+# Виртуальные коды клавиш
+VK_SHIFT = 0x10
+VK_CONTROL = 0x11
+VK_ALT = 0x12
+VK_CAPITAL = 0x14
+VK_SCROLL = 0x91  # коды CapsLock и ScrollLock
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)  # Функции работы с окнами/вводом
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # Общесистемные функции
@@ -145,9 +157,123 @@ class KeyboardHook:
         self, nCode: int, wParam: wintypes.WPARAM, lParam: wintypes.LPARAM
     ) -> L_RESULT:
         """Внутренний обратный вызов. Запускает обработчик по vkCode, если он задан."""
-        if nCode == 0 and wParam in (WM_KEYDOWN, WM_SYS_KEYDOWN):
+        if nCode == 0 and wParam in (WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP):
             ks = ctypes.cast(lParam, ctypes.POINTER(KbdLlHookStruct)).contents
             handler = self.handlers.get(ks.vkCode)
             if handler is not None:
-                handler()
+                handler()  # вызываем свой код
+                return 1  # полностью съедаем событие (и down, и up)
         return CallNextHookEx(None, nCode, wParam, lParam)
+
+
+def press_ctrl(key_code: int, delay: float = 0.05):
+    """
+    Эмулирует комбинацию Ctrl+<Key> через WinAPI (keybd_event).
+
+    Параметры:
+        key_code : int
+            Виртуальный код клавиши (например 0x43 для 'C', 0x56 для 'V').
+        delay : float
+            Задержка между событиями клавиш в секундах (по умолчанию 0.05).
+
+    Логика:
+        1. Нажать Ctrl (keydown).
+        2. Нажать указанную клавишу (keydown).
+        3. Отпустить указанную клавишу (keyup).
+        4. Отпустить Ctrl (keyup).
+    """
+
+    # 1. Ctrl down
+    user32.keybd_event(VK_CONTROL, 0, 0, 0)
+    time.sleep(delay)
+
+    # 2. Key down
+    user32.keybd_event(key_code, 0, 0, 0)
+    time.sleep(delay)
+
+    # 3. Key up
+    user32.keybd_event(key_code, 0, KEY_EVENT_F_KEYUP, 0)
+    time.sleep(delay)
+
+    # 4. Ctrl up
+    user32.keybd_event(VK_CONTROL, 0, KEY_EVENT_F_KEYUP, 0)
+
+
+HKL_NEXT = 1  # следующий язык/раскладка
+KLF_SET_FOR_PROCESS = 0x0100  # опционально: для всех потоков процесса
+
+
+def change_keyboard_case() -> None:
+    """
+    Эмулирует комбинацию Ctrl+Shift через WinAPI (keybd_event).
+
+
+    Логика:
+        1. Нажать Alt (keydown).
+        2. Нажать Shift (keydown).
+        3. Отпустить Shift (keyup).
+        4. Отпустить Alt (keyup).
+    """
+    user32.keybd_event(VK_ALT, 0, 0, 0)  # 1. Alt down
+    user32.keybd_event(VK_SHIFT, 0, 0, 0)  # 2. Shift down
+    user32.keybd_event(VK_SHIFT, 0, KEY_EVENT_F_KEYUP, 0)  # 3. Shift up
+    user32.keybd_event(VK_ALT, 0, KEY_EVENT_F_KEYUP, 0)  # 4. Alt up
+
+
+# ----- базовые типы -----
+U_LONG_PTR = ctypes.c_uint64 if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_uint32
+
+# ----- константы -----
+INPUT_KEYBOARD = 1
+KEY_EVENT_F_KEYUP = 0x0002
+KEY_EVENT_F_UNICODE = 0x0004
+
+VK_SHIFT, VK_CONTROL, VK_MENU = 0x10, 0x11, 0x12
+
+
+# ----- структуры -----
+class KeyboardInput(ctypes.Structure):
+    _fields_ = [
+        ("wVk", wintypes.WORD),
+        ("wScan", wintypes.WORD),
+        ("dwFlags", wintypes.DWORD),
+        ("time", wintypes.DWORD),
+        ("dwExtraInfo", U_LONG_PTR),
+    ]
+
+
+class _InputUnion(ctypes.Union):
+    _fields_ = [("ki", KeyboardInput)]
+
+
+class INPUT(ctypes.Structure):
+    _fields_ = [("type", wintypes.DWORD), ("u", _InputUnion)]
+
+
+def make_key(vk, up=False):
+    return INPUT(
+        type=INPUT_KEYBOARD,
+        u=_InputUnion(
+            ki=KeyboardInput(
+                wVk=vk,
+                wScan=0,
+                dwFlags=(KEY_EVENT_F_KEYUP if up else 0),
+                time=0,
+                dwExtraInfo=0,
+            )
+        ),
+    )
+
+
+def send_text(text: str):
+    seq = []
+    for ch in text:
+        code = user32.VkKeyScanW(ord(ch))
+        vk = code & 0xFF
+
+        # символ
+        seq.append(make_key(vk, False))
+        seq.append(make_key(vk, True))
+
+    arr = (INPUT * len(seq))(*seq)
+    user32.SendInput(len(arr), ctypes.byref(arr), ctypes.sizeof(INPUT))

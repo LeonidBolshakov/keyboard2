@@ -54,10 +54,16 @@ class Tray(QtWidgets.QSystemTrayIcon):
         menu = QtWidgets.QMenu()
         for text, handler in actions.items():
             act = menu.addAction(text)
-            act.triggered.connect(handler)
+            try:
+                act.triggered.connect(handler)
+            except Exception as e:
+                print('Ошибка подключения сигнала:', e)
 
         quit_action = menu.addAction("Выход")
-        quit_action.triggered.connect(on_quit)
+        try:
+            quit_action.triggered.connect(on_quit)
+        except Exception as e:
+            print('Ошибка подключения сигнала:', e)
 
         self.setContextMenu(menu)
         self.setVisible(True)
