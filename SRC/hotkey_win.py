@@ -22,8 +22,8 @@ Qt‑приложении через `QAbstractNativeEventFilter`.
 """
 
 from __future__ import annotations
+from typing import Any
 
-# WinAPI RegisterHotKey + перехват WM_HOTKEY
 import ctypes
 from ctypes import wintypes
 
@@ -92,7 +92,7 @@ class HotkeyFilter(QtCore.QAbstractNativeEventFilter):
         super().__init__()
         self.handler = handler
 
-    def nativeEventFilter(self, eventType, message):
+    def nativeEventFilter(self, eventType: Any, message: int) -> tuple[bool, int]:
         """Перехватывает нативные события и отбирает только `WM_HOTKEY`.
 
         Параметры

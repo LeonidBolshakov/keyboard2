@@ -36,7 +36,7 @@ from typing import Callable
 WH_KEYBOARD_LL = 13  # Идентификатор низкоуровневого клавиатурного хука
 WM_KEYDOWN, WM_SYS_KEYDOWN = 0x0100, 0x0104  # Идентификатор сообщения о нажатии клавиши
 WM_KEYUP = 0x0100, 0x0101
-WM_SYSKEYDOWN, WM_SYSKEYUP = 0x0104, 0x0105
+WM_SYS_KEY_DOWN, WM_SYS_KEY_UP = 0x0104, 0x0105
 
 # Флаг для события клавиатуры:
 KEY_EVENT_F_KEYUP = 0x0002  # означает "отпускание клавиши"
@@ -139,7 +139,7 @@ class KeyboardHook:
         # То есть self._proc = «C-указатель на Python-функцию»
 
     def install(self) -> None:
-        """Устанавливает низкоуровневый хук в текущем процессе."""
+        """Устанавливает низкоуровневый хук"""
         self.hook = SetWindowsHookExW(WH_KEYBOARD_LL, self._proc, 0, 0)
         if not self.hook:
             err = ctypes.get_last_error()
@@ -157,7 +157,12 @@ class KeyboardHook:
         self, nCode: int, wParam: wintypes.WPARAM, lParam: wintypes.LPARAM
     ) -> L_RESULT:
         """Внутренний обратный вызов. Запускает обработчик по vkCode, если он задан."""
-        if nCode == 0 and wParam in (WM_KEYDOWN, WM_KEYUP, WM_SYSKEYDOWN, WM_SYSKEYUP):
+        if nCode == 0 and wParam in (
+            WM_KEYDOWN,
+            WM_KEYUP,
+            WM_SYS_KEY_DOWN,
+            WM_SYS_KEY_UP,
+        ):
             ks = ctypes.cast(lParam, ctypes.POINTER(KbdLlHookStruct)).contents
             handler = self.handlers.get(ks.vkCode)
             if handler is not None:

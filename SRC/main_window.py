@@ -27,21 +27,6 @@ def safe_exit():
         logger.error("Ошибка выхода: %s", e)
 
 
-def safe_slot(fn):
-    """
-    Декоратор для безопасного выполнения слотов (обработчиков сигналов).
-    Исключения внутри слота не прерывают работу приложения.
-    """
-
-    def _w(*args, **kwargs):
-        try:
-            return fn(*args, **kwargs)
-        except Exception as e:
-            logger.error("Ошибка в слоте %s: %s", fn.__name__, e)
-
-    return _w
-
-
 # noinspection PyUnresolvedReferences
 class MainWindow(QMainWindow):
     """Класс организации диалога с пользователем"""
@@ -67,8 +52,8 @@ class MainWindow(QMainWindow):
         self.is_restore_clipboard = True
 
         self.init_UI()  # Загружаем файл, сформированный Qt Designer
-        self.init_button()  # Инициализируем переменные
-        self.set_connect()  # Назначаем обработчики событий
+        self.init_buttons()  # Инициализируем переменные
+        self.set_connects()  # Назначаем обработчики событий
         self.setup_signals()
         self.custom_UI()  # Делаем пользовательские настройки интерфейса
 
@@ -115,7 +100,7 @@ class MainWindow(QMainWindow):
             logger.error(C.TEXT_ERROR_LOAD_UI.format(e=e))
             raise RuntimeError(C.TEXT_ERROR_LOAD_UI.format(e=e)) from e
 
-    def init_button(self):
+    def init_buttons(self):
         """Присваиваем значения переменным программы"""
         try:
             self.yes_button = self.buttonBox.button(QDialogButtonBox.StandardButton.Yes)
@@ -127,7 +112,7 @@ class MainWindow(QMainWindow):
             logger.error(C.TEXT_ERROR_INIT_BUTTON.format(e=e))
             raise RuntimeError(C.TEXT_ERROR_INIT_BUTTON.format(e=e)) from e
 
-    def set_connect(self):
+    def set_connects(self):
         """Назначаем обработчики"""
         try:
             # Обработчик событий для клика кнопок
@@ -198,7 +183,6 @@ class MainWindow(QMainWindow):
             except Exception:
                 pass
 
-    @safe_slot
     def on_Yes(self):
         """Заменяем выделенный текст предложенным вариантом замены"""
         try:
@@ -209,13 +193,11 @@ class MainWindow(QMainWindow):
             logger.error(C.TEXT_ERROR_REPLACE_TEXT.format(e=e))
 
     @staticmethod
-    @safe_slot
     def on_Cancel() -> None:
         """Выгружаем программу"""
         logger.info(C.LOGGER_TEXT_UNLOAD_PROGRAM)
         QTimer.singleShot(0, lambda: safe_exit())
 
-    @safe_slot
     def on_No(self) -> None:
         """Отказ от замены текста"""
         try:

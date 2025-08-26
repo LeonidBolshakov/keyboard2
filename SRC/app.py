@@ -18,7 +18,7 @@
 -----------
 - PyQt6
 - Внутренние модули: ``SRC.constants``, ``SRC.system_tray``, ``SRC.single_instance``,
-  ``SRC.UI.main_window``, ``SRC.controller``, ``SRC.hotkey_win``, ``ll_keyboard``.
+  ``SRC.UI.main_window``, ``SRC.controller``, ``SRC.hotkey_win``.
 
 Примечание по завершению
 ------------------------
@@ -32,32 +32,16 @@ from __future__ import annotations
 import sys
 import logging
 
+logger = logging.getLogger(__name__)
+
 from PyQt6 import QtWidgets
 
 from SRC.constants import C
 from SRC.system_tray import Tray
 from SRC.single_instance import SingleInstance
 from SRC.main_window import MainWindow
+from SRC.hotkey_win import HotkeyFilter
 from SRC.controller import Controller
-from SRC.hotkey_win import (
-    register_hotkey,
-    unregister_hotkey,
-    HotkeyFilter,
-    MOD_CONTROL,  # Требует нажатия клавиши Ctrl
-    MOD_NOREPEAT,  # Отключает автоповтор события, если пользователь держит клавишу
-)
-from ll_keyboard import KeyboardHook, VK_CAPITAL, VK_SCROLL
-
-
-# Код виртуальной клавиши и ID горячих клавиш
-VK_3: int = 0x33  # Код клавиши '3'
-VK_4: int = 0x34  # Код клавиши '4'
-VK_5: int = 0x35  # Код клавиши '5'
-VK_9: int = 0x39  # Код клавиши '9'
-
-HK_MAIN: int = 1  # Логический идентификатор горячей клавиши
-
-logger = logging.getLogger(__name__)
 
 
 class MainApp:
@@ -75,10 +59,10 @@ class MainApp:
         self.app: QtWidgets.QApplication = self.create_app()
         self.ui: MainWindow = MainWindow()
         self.ctrl: Controller = Controller(self.ui)
-        self.hk_filter = HotkeyFilter(self.ctrl.on_hotkey)
-        self._low_level_hook: KeyboardHook | None = None
 
-    def main_app(self):
+        self.hk_filter = HotkeyFilter(self.ctrl.on_hotkey)
+
+    def main_app(self) -> int:
         """Запускает приложение.
 
         Порядок действий:
@@ -88,16 +72,17 @@ class MainApp:
         4. Показ главного окна и вход в цикл событий.
 
         Returns
-        -------
         int
             Код завершения ``QApplication.exec()``.
         """
         if not self.can_continue():
             raise SystemExit(1)
 
-        self.tray()
-        self.global_hotkeys()
-        self.single_hotkeys()
+        self.ctrl.register_global_hotkeys()
+        self.ctrl.set_single_hotkeys()
+        self.connect_cleanup()
+        self.app.installNativeEventFilter(self.hk_filter)
+        self.create_tray()
 
         return self.app.exec()
 
@@ -105,9 +90,8 @@ class MainApp:
         """Проверяет совместимость платформы и отсутствие второго экземпляра.
 
         Returns
-        -------
         bool
-            ``True`` если можно продолжать, иначе ``False``.
+            True если можно продолжать, иначе False.
         """
         if sys.platform != "win32":
             logger.critical("Данная программа выполняется только под Windows!")
@@ -117,6 +101,13 @@ class MainApp:
         if not self.single_copy():
             return False
         return True
+
+    def connect_cleanup(self) -> None:
+        """Подключение сигнала cleanup"""
+        try:
+            self.app.aboutToQuit.connect(self.ctrl.cleanup)  # type: ignore[arg-type]
+        except Exception as e:
+            print("Ошибка подключения сигнала self.ctrl.cleanup:", e)
 
     def create_app(self) -> QtWidgets.QApplication:
         """Создаёт и настраивает ``QApplication``.
@@ -128,48 +119,15 @@ class MainApp:
         app.setQuitOnLastWindowClosed(
             False
         )  # Оставляем app в памяти даже при закрытии всех окон
-        try:
-            app.aboutToQuit.connect(self.cleanup)  # type: ignore[arg-type]
-        except Exception as e:
-            print('Ошибка подключения сигнала:', e)
         return app
 
-    def tray(self) -> None:
+    def create_tray(self) -> None:
         """Создаёт системный трей и регистрирует действия меню."""
         Tray(
             self.app,
             on_quit=self.do_quit,
             actions={"Вызов диалога": self.ui.start_dialogue},
         )
-
-    def global_hotkeys(self) -> None:
-        """Регистрирует глобальные горячие клавиши и фильтр нативных событий."""
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_3)
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_4)
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_5)
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_9)
-
-        self.app.installNativeEventFilter(self.hk_filter)
-
-    def single_hotkeys(self) -> None:
-        """Устанавливает низкоуровневый перехватчик CapsLock/ScrollLock."""
-
-        hook = KeyboardHook(
-            {
-                VK_CAPITAL: self.ctrl.on_caps,
-                VK_SCROLL: self.ctrl.on_scroll,
-            }
-        )
-        hook.install()
-        self._low_level_hook = hook
-
-    def cleanup(self) -> None:
-        """Освобождает ресурсы перед завершением приложения"""
-
-        unregister_hotkey(HK_MAIN)
-        hook = self._low_level_hook
-        if hook is not None:
-            hook.uninstall()
 
     def do_quit(self) -> None:
         """Корректно завершает цикл Qt."""
