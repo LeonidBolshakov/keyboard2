@@ -3,6 +3,8 @@ from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtCore import Qt
 
 from SRC.signals import signals_bus
+from SRC.try_log import log_exceptions
+from SRC.constants import C
 
 
 class CustomTextEdit(QTextEdit):
@@ -21,29 +23,18 @@ class CustomTextEdit(QTextEdit):
             )  # Для остальных клавиш передаём обработку системе
 
     @staticmethod
+    @log_exceptions(C.TEXT_ERROR_CONNECT)
     def run_special_key(event: QKeyEvent) -> bool:
         """Обрабатываем нажатие горячих клавиш кнопок"""
         match event.key():
             case Qt.Key.Key_1:  # Заменять текст
-                try:
-                    signals_bus.on_Yes.emit()
-                except Exception as e:
-                    print('Ошибка при emit сигнала:', e)
+                signals_bus.on_Yes.emit()
             case Qt.Key.Key_Escape:  # Отказ от замены
-                try:
-                    signals_bus.on_No.emit()
-                except Exception as e:
-                    print('Ошибка при emit сигнала:', e)
+                signals_bus.on_No.emit()
             case Qt.Key.Key_2:  # Отказ от замены
-                try:
-                    signals_bus.on_No.emit()
-                except Exception as e:
-                    print('Ошибка при emit сигнала:', e)
+                signals_bus.on_No.emit()
             case Qt.Key.Key_3:  # Выгрузить программу
-                try:
-                    signals_bus.on_Cancel.emit()
-                except Exception as e:
-                    print('Ошибка при emit сигнала:', e)
+                signals_bus.on_Cancel.emit()
             case _:
                 return False
 

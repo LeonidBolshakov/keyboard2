@@ -32,6 +32,7 @@ import logging
 from logging.handlers import RotatingFileHandler
 
 from SRC.get_variable import Variables
+import SRC.try_log as try_log
 from SRC.constants import C
 
 logger = logging.getLogger(__name__)
@@ -140,11 +141,11 @@ class TuneLogger:
             except Exception:
                 print(C.TEXT_ERROR_CLOSE_HANDLER.format(name=h.name))
 
+    @try_log.log_exceptions(C.TEXT_ERROR_LOG_LEVEL_NAME)
     def _get_log_level(self, env_name: str, default_name: str) -> int:
         """
         Возвращает числовой уровень логирования по имени уровня логирования.
         Имя уровня логирования задаётся в окружении.
-
 
         :param env_name:        Имя переменной окружения, содержащей имя уровня логирования.
         :param default_name:    Имя уровня логирования, задаваемое по умолчанию.
@@ -156,12 +157,6 @@ class TuneLogger:
         """
         name = self.variables.get_var(env_name, default_name)
         if not isinstance(name, str):
-            try:
-                name = str(name)
-            except Exception:
-                logger.warning(
-                    C.TEXT_ERROR_LOG_LEVEL_NAME.format(env_name=env_name, name=name)
-                )
-                name = default_name
+            name = str(default_name)
 
         return C.CONVERT_LOGGING_NAME_TO_CODE.get(name.upper(), logging.DEBUG)

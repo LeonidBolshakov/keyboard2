@@ -57,11 +57,13 @@ class StartApp:
 
     def __init__(self) -> None:
         """Готовит инфраструктуру: ``QApplication``, UI и контроллер."""
+        super().__init__()
+
         self.app: QtWidgets.QApplication = self.create_app()
         self.ui: MainWindow = MainWindow()
         self.ctrl: Controller = Controller(self.ui)
-
         self.hk_filter = HotkeyFilter(self.ctrl.on_hotkey)
+        self.app.installEventFilter(self.hk_filter)
 
     def main_app(self) -> int:
         """Запускает приложение.

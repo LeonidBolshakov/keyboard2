@@ -1,9 +1,10 @@
 """Класс организации диалога с пользователем"""
 
 from typing import Callable
+from enum import IntEnum
 import logging
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 from PyQt6 import uic
 from PyQt6.QtGui import QCloseEvent, QKeySequence, QShortcut
@@ -13,8 +14,15 @@ from PyQt6.QtWidgets import QMainWindow, QDialogButtonBox, QPushButton
 from SRC.signals import signals_bus
 from SRC.replacetext import ReplaceText
 from SRC.customtextedit import CustomTextEdit
+from SRC.try_log import log_exceptions
 import SRC.functions as f
 from SRC.constants import C
+
+
+class DialogResult(IntEnum):
+    EXIT = 0  # завершить / выгрузить программу
+    REPLACE = 1  # заменить выделенный текст
+    SKIP = 2  # отказ от замены выделенного текста
 
 
 def safe_exit():
@@ -41,28 +49,6 @@ def add_shortcut(
     sc.activated.connect(slot)
     setattr(self, attr_name, sc)  # сохранить ссылку: self.sc_yes и т.п.
     return sc
-
-
-from functools import wraps
-
-
-def log_exceptions(name: str | None = None):
-    def deco(fn):
-        @wraps(fn)
-        def w(*a, **k):
-            try:
-                need = (
-                    fn.__code__.co_argcount
-                )  # сколько позиционных ждёт fn (включая self)
-                return fn(
-                    *a[:need], **k
-                )  # отбросить, например, checked из clicked(bool)
-            except Exception:
-                logger.exception(name or fn.__qualname__)
-
-        return w
-
-    return deco
 
 
 # noinspection PyUnresolvedReferences
@@ -100,7 +86,7 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event: QCloseEvent) -> None:
         """Переопределение метода. Перехватываем закрытие окна Пользователем"""
         # При закрытии окна пользователем сигнализируем об остановке диалога, но программу из памяти не выгружаем
-        self.stop_dialogue(2)
+        self.stop_dialogue(DialogResult.EXIT)
         event.ignore()
 
     @staticmethod
@@ -176,7 +162,7 @@ class MainWindow(QMainWindow):
         """
         self.txtEditSource.setText(original_text)
 
-    @log_exceptions("show_replacements_text")
+    @log_exceptions
     def show_replacements_text(self, replacement_text: str) -> None:
         """Отображаем вариант замены текста."""
         self.txtEditReplace.setText(replacement_text)
@@ -186,7 +172,7 @@ class MainWindow(QMainWindow):
         """Заменяем выделенный текст предложенным вариантом замены"""
         f.put_text_to_clipboard(self.txtEditReplace.toPlainText())
         self.hide()  # Освобождаем фокус для окна с выделенным текстом
-        self.stop_dialogue(1)
+        self.stop_dialogue(DialogResult.REPLACE)
 
     @staticmethod
     def on_Cancel() -> None:
@@ -197,7 +183,7 @@ class MainWindow(QMainWindow):
     @log_exceptions(C.TEXT_ERROR_ON_NO)
     def on_No(self) -> None:
         """Отказ от замены текста"""
-        self.stop_dialogue(2)
+        self.stop_dialogue(DialogResult.SKIP)
 
     def processing_clipboard(self) -> None:
         """Обрабатываем буфер обмена"""
@@ -239,6 +225,7 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logger.exception(C.TEXT_ERROR_CHANGE_TEXT.format(e=e))
 
+    @log_exceptions(C.TEXT_ERROR_SCROLL)
     def start_dialogue(self) -> None:
         """
         Начало работы с всплывающим окном.
@@ -246,78 +233,61 @@ class MainWindow(QMainWindow):
         """
         if not self.isHidden():  # Если диалог не закончен - новый не начинаем
             return
-        try:
-            window = f.get_window()  # Получаем активное окно операционной системы
-            title = window.title if window else C.TEXT_WINDOW_NOT_FOUND
-            logger.info(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
-            if window:
-                window.activate()  # Поднимаем окно поверх других окон
-                title = window.title
-            else:
-                title = C.TEXT_WINDOW_NOT_FOUND
 
-            # запоминаем буфер обмена для возможного дальнейшего восстановления
-            try:
-                self.old_clipboard_text = f.get_clipboard_text()
-            except Exception as e:
-                logger.exception("clipboard read failed")
-                self.old_clipboard_text = ""
+        window = f.get_window()  # Получаем активное окно операционной системы
+        if window:
+            window.activate()  # Поднимаем окно поверх других окон
+            title = window.title
+        else:
+            title = C.TEXT_WINDOW_NOT_FOUND
+        logger.info(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
 
-            self.is_restore_clipboard = True
-            self.processing_clipboard()  # Обрабатываем буфер обмена
-            self.setWindowFlag(
-                Qt.WindowType.WindowStaysOnTopHint, True
-            )  # Поднимаем окно диалога над всеми окнами
-            self.show()  # Показываем окно
-            # Делаем окно доступным для ввода с клавиатуры
-            self.activateWindow()
-        except Exception as e:
-            logger.exception(C.TEXT_ERROR_SCROLL.format(e=e))
+        # запоминаем буфер обмена для возможного дальнейшего восстановления
+        self.old_clipboard_text = f.get_clipboard_text()
 
-    def stop_dialogue(self, command: int) -> None:
+        self.is_restore_clipboard = True
+        self.processing_clipboard()  # Обрабатываем буфер обмена
+        self.setWindowFlag(
+            Qt.WindowType.WindowStaysOnTopHint, True
+        )  # Поднимаем окно диалога над всеми окнами
+        self.show()  # Показываем окно
+        # Делаем окно доступным для ввода с клавиатуры
+        self.activateWindow()
+
+    @log_exceptions(C.TEXT_ERROR_STOP_DIALOG)
+    def stop_dialogue(self, command: DialogResult) -> None:
         """
         Выполняем команду, заданную в параметре.
         : command: (int) - Код команды закрытия диалога
         """
-        try:
-            # Обрабатываем команду
-            match command:
-                case 0:  # Выгрузка программы
-                    pass
-                case 1:  # Заменяем выделенный текст
-                    try:
-                        f.replace_selected_text()
-                    except Exception as e:
-                        logger.exception(e)
-                case 2:  # Отказ от замены текста
-                    pass
-                case _:  # Непредусмотренная команда
-                    logger.critical(C.TEXT_CRITICAL_ERROR.format(command=self.command))
-
-            # Если буфер обмена не требуется для завершения действий Пользователя,
-            # то восстанавливаем первоначальный буфер обмена
-            if self.is_restore_clipboard:
-                try:
-                    f.put_text_to_clipboard(self.old_clipboard_text)
-                    logger.info(
-                        C.LOGGER_TEXT_RESTORED_CLIPBOARD.format(
-                            clipboard_text=self.old_clipboard_text
-                        )
-                    )
-                except Exception as e:
-                    logger.exception(e)
-        except Exception as e:
-            logger.exception(e)
-        finally:
-            try:
-                self.hide()  # Убираем окно с экрана
-            except Exception:
+        # Обрабатываем команду
+        match command:
+            case DialogResult.EXIT:  # Выгрузка программы
                 pass
-            logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)
+            case DialogResult.REPLACE:  # Заменяем выделенный текст
+                f.replace_selected_text()
+            case DialogResult.SKIP:  # Отказ от замены текста
+                pass
+            case _:  # Непредусмотренная команда
+                logger.critical(C.TEXT_CRITICAL_ERROR.format(command=self.command))
+
+        # Если буфер обмена не требуется для завершения действий Пользователя,
+        # то восстанавливаем первоначальный буфер обмена
+        if self.is_restore_clipboard:
+            f.put_text_to_clipboard(self.old_clipboard_text)
+            logger.info(
+                C.LOGGER_TEXT_RESTORED_CLIPBOARD.format(
+                    clipboard_text=self.old_clipboard_text
+                )
+            )
+
+        self.hide()  # Убираем окно с экрана
+        logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)
 
     @log_exceptions(C.TEXT_ERROR_CONNECT_SIGNAL)
     def setup_signals(self) -> None:
         """Связываем сигнал с функцией обработки"""
+        1 / 0
         signals_bus.on_Yes.connect(self.on_Yes)
         signals_bus.on_No.connect(self.on_No)
         signals_bus.on_Cancel.connect(self.on_Cancel)

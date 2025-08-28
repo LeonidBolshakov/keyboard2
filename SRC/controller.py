@@ -21,17 +21,16 @@ from SRC.hotkey_win import (
     MOD_CONTROL,  # Требует нажатия клавиши Ctrl
     MOD_NOREPEAT,  # Отключает автоповтор события, если пользователь держит клавишу
 )
-from SRC.ll_keyboard import KeyboardHook, VK_CAPITAL, VK_SCROLL, change_keyboard_case
-from SRC.key_sender import KeystrokeAutomator, Timings
-from constants import C
+import SRC.ll_keyboard as llk
+from SRC.constants import C
 
-VK_LCONTROL, VK_RCONTROL = 0xA2, 0xA3
 
 # ID горячих клавиш и идентификатор горячей клавиши
 VK_3: int = 0x33  # Код клавиши '3'
 VK_4: int = 0x34  # Код клавиши '4'
 VK_5: int = 0x35  # Код клавиши '5'
 VK_9: int = 0x39  # Код клавиши '9'
+VK_CONTROL: int = 0x11  # Модификатор 'ctrl'
 
 HK_MAIN: int = 1  # Логический идентификатор горячей клавиши
 
@@ -39,7 +38,7 @@ HK_MAIN: int = 1  # Логический идентификатор горяче
 class Controller:
     """Контроллер, обрабатывающий события горячих и специальных клавиш."""
 
-    def __init__(self, ui):
+    def __init__(self, ui=None):
         """
         Параметры
         ---------
@@ -47,8 +46,7 @@ class Controller:
             Ссылка на UI, в который будут выводиться сообщения.
         """
         self.ui = ui
-        self._low_level_hook: KeyboardHook | None = None
-        self.kb = KeystrokeAutomator(Timings(press=0.02, after=0.20, combo=0.02))
+        self._low_level_hook: llk.KeyboardHook | None = None
 
     def on_hotkey(self, hk_id: int, mods: int, vk: int):
         """
@@ -70,7 +68,7 @@ class Controller:
     def on_caps(self):
         """Вызывается при нажатии CapsLock."""
         try:
-            change_keyboard_case()
+            llk.change_keyboard_case()
         except Exception as e:
             logger.error(C.TEXT_ERROR_CHANGE_KEYBOARD.format(e=e))
 
@@ -90,17 +88,17 @@ class Controller:
     def set_single_hotkeys(self) -> None:
         """Устанавливает низкоуровневый перехватчик CapsLock/ScrollLock."""
 
-        hook = KeyboardHook(
+        hook = llk.KeyboardHook(
             {
-                VK_CAPITAL: self.on_caps,
-                VK_SCROLL: self.on_scroll,
+                llk.VK_CAPITAL: self.on_caps,
+                llk.VK_SCROLL: self.on_scroll,
             }
         )
         hook.install()
         self._low_level_hook = hook
 
     def press_ctrl(self, vk: int) -> None:
-        self.kb.combo_sc(vk, [MOD_CONTROL])
+        llk.press_ctrl(vk)
 
     def cleanup(self) -> None:
         """Освобождает ресурсы перед завершением приложения"""

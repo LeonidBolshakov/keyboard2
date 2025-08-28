@@ -10,10 +10,12 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QPushButton, QMessageBox, QApplication
 
 import SRC.ll_keyboard as ll_keyboard
-from SRC.controller import Controller as ctrl
+from SRC.controller import Controller
 from SRC.constants import C
 
 logger = logging.getLogger(__name__)
+
+ctrl = Controller()
 
 
 def show_message(
@@ -102,8 +104,8 @@ def get_it_once(time_delay: float) -> str | None:
     """
 
     QApplication.clipboard().clear()
-    VK_C = 0x43  # c
-    ctrl.press_ctrl(VK_C, time_delay)
+    VK_C = 0x43  # "C"
+    ctrl.press_ctrl(VK_C)
     return get_clipboard_text()
 
 

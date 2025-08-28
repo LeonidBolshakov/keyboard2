@@ -11,6 +11,7 @@ constants.py — неизменяемые константы.
 """
 
 import logging
+
 from pathlib import Path
 
 from PyQt6.QtGui import QColor
@@ -77,7 +78,7 @@ class _Const:
     LOGGER_TEXT_ERROR_READ_CLIPBOARD = "Из Clipboard считан пустой текст"
     LOGGER_TEXT_LOAD_PROGRAM = "Программа загружена"
     LOGGER_TEXT_NO_IN_CLIPBOARD = (
-        "Выделенный текст не попал в буфер обмена. Время ожидания - {time_delay}"
+        "Текст не выделен или не попал в буфер обмена. Время ожидания - {time_delay}"
     )
     LOGGER_TEXT_ORIGINAL = "Текст пользователя *{text}*"
     LOGGER_TEXT_RESTORED_CLIPBOARD = "Текст +*{clipboard_text}*+ возвращён буфер обмена"
@@ -129,20 +130,18 @@ class _Const:
     TEXT_ERROR_LOAD_UI = (
         "Ошибка загрузки UI (Описаний окна, подготовленных QtDesigner) {ui_path}"
     )
-    TEXT_ERROR_LOG_LEVEL_NAME = "Некорректное значение уровня для {env_name}: {name}"
+    TEXT_ERROR_LOG_LEVEL_NAME = "Некорректное значение уровня"
     TEXT_ERROR_ON_NO = "Ошибка в диалоговом окне при нажатии на кнопку NO"
     TEXT_ERROR_ORIGINAL_TEXT = "Ошибка отображения выделенного текста {e}"
     TEXT_ERROR_PROCESSING_CLIPBOARD = (
         " Ошибка при чтении из буфера обмена {type_error}. {e}"
     )
     TEXT_ERROR_PROCESSING_CLIPBOARD_1 = "Чтение буфера обмена"
-    TEXT_ERROR_REGISTER_HOTKEY = (
-        "Отказано в регистрации горячей клавиши  hk_id={hk_id} mods={mods} vk={vk}"
-    )
     TEXT_ERROR_REPLACE_TEXT = "Ошибка при формировании/записи заменяющего текста"
     TEXT_ERROR_SCROLL = "Ошибка при вызове окна диалога. {e}"
     TEXT_ERROR_SEND_INPUT = "Ошибка SendInput"
     TEXT_ERROR_START_APP = "Фатальная ошибка на старте приложения {e}"
+    TEXT_ERROR_STOP_DIALOG = "Ошибка при завершении диалога"
     TEXT_ERROR_SHOW_REPLACEMENTS_TEXT = (
         "Ошибка при формировании/отображении замещающего текст {e}"
     )

@@ -29,8 +29,6 @@ from ctypes import wintypes
 
 from PyQt6 import QtCore
 
-from SRC.constants import C
-
 # ------------------------------
 # Константы WinAPI
 # ------------------------------
@@ -60,9 +58,7 @@ def register_hotkey(hk_id: int, mods: int, vk: int) -> None:
         Бросается, если `RegisterHotKey` вернул 0 (ошибка регистрации).
     """
     if not user32.RegisterHotKey(None, hk_id, mods, vk):
-        raise OSError(
-            C.TEXT_ERROR_REGISTER_HOTKEY.format(hk_id=hk_id, mods=mods, vk=vk)
-        )
+        raise OSError(f"Отказано в регистрации горячей клавиши {hk_id=} {mods=} {vk=}")
 
 
 def unregister_hotkey(hk_id: int) -> None:

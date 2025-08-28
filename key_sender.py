@@ -242,9 +242,11 @@ class KeystrokeAutomator:
 
     def combo(self, main_vk: int | VK, modifiers: Iterable[int | VK]) -> None:
         """
-        Выполнить сочетание: зажать модификаторы → нажать/отпустить основную →
-        отпустить модификаторы в обратном порядке. Паузы — `combo`.
+        Выполнить сочетание:
+        зажать модификаторы → нажать/отпустить основную → отпустить модификаторы в обратном порядке.
+        Паузы — combo.
         """
+
         vk_main = int(main_vk)
         mods = list(
             dict.fromkeys(int(m) for m in modifiers)
@@ -252,6 +254,7 @@ class KeystrokeAutomator:
         for m in mods:
             self.key_down(m)
             time.sleep(self.timings.combo)
+        time.sleep(self.timings.combo)
         self.key_down(vk_main)
         time.sleep(self.timings.combo)
         self.key_up(vk_main)
@@ -259,6 +262,7 @@ class KeystrokeAutomator:
         for m in reversed(mods):
             self.key_up(m)
             time.sleep(self.timings.combo)
+
         self._after()
 
     @contextmanager
