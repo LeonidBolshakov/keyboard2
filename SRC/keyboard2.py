@@ -21,16 +21,16 @@
 
 # ---- Точка входа
 import sys
-from logging import getLogger
+import logging as lg
 
-logger = getLogger(__name__)
+logger = lg.getLogger(__name__)
 
 from SRC.tune_logger import TuneLogger
-from SRC.app import MainApp
+from SRC.app import StartApp
 from SRC.constants import C
 
 
-def main() -> int:
+def keyboard2() -> int:
     """Запускает приложение с настройкой логирования и обработкой ошибок.
 
     Возвращает
@@ -42,21 +42,24 @@ def main() -> int:
         tune_logger = TuneLogger()
         tune_logger.setup_logging()
     except Exception as e:
-        # Если логгер не настроился, печатаем сообщение и продолжаем запуск
-        print(C.TEXT_ERROR_TUNE_LOGGER.format(e=e))
+        # Если логгер не настроился, выводим сообщение и продолжаем запуск
+        lg.basicConfig(level=lg.INFO, stream=sys.stderr)
+        lg.getLogger().exception(C.TEXT_ERROR_TUNE_LOGGER.format(e=e))
+
     try:
-        app_code = MainApp().main_app()
+        return int(StartApp().main_app())
     except SystemExit as e:
-        # Корректная передача кода выхода, если где‑то вызван SystemExit
-        sys.exit(int(e.code) if hasattr(e, "code") else 0)
+        return int(getattr(e, "code", 0) or 0)
+    except KeyboardInterrupt:
+        return 130
     except Exception as e:
         # Записываем в лог не перехваченное исключение и выходим с кодом 1
         logger.exception(C.TEXT_ERROR_START_APP.format(e=e))
-        sys.exit(1)
-    # Возвращаем код, чтобы sys.exit(main()) завершил процесс тем же кодом
-    return int(app_code)
+        return 1  # Возвращаем код, чтобы sys.exit(main()) завершил процесс тем же кодом
+    finally:
+        lg.shutdown()
 
 
 if __name__ == "__main__":
     # Запуск из командной строки; sys.exit передаёт код возврата оболочке
-    sys.exit(main())
+    sys.exit(keyboard2())

@@ -57,10 +57,19 @@ class _Const:
     COLOR_MESSAGE_START_PROGRAM = QColor("green")
     HOTKEY_BEGIN_DIALOGUE = "scroll lock"  # Клавиша вызова окна замены регистров
     TEXT_MESSAGE_START_PROGRAM = (
-        "Запущена программа замены регистра выделенного текста. Горячая клавиша {key}"
+        "Запущена программа работы с клавиатурой. Горячая клавиша {key}"
     )
     TIME_MESSAGE_START_PROGRAM = (
         0.3  # Время высвечивания сообщения о запуске программы (в секундах)
+    )
+
+    # --- Сообщение о неудачной загрузке программы
+    COLOR_MESSAGE_NO_START_PROGRAM = QColor("red")
+    TEXT_MESSAGE_NO_START_PROGRAM = (
+        "Программа работы с клавиатурой уже запущена.\nПовторный запуск не нужен."
+    )
+    TIME_MESSAGE_NO_START_PROGRAM = (
+        2.0  # Время высвечивания сообщения о запуске программы (в секундах)
     )
 
     # --- Сообщения логирования
@@ -101,30 +110,48 @@ class _Const:
     TEXT_CRITICAL_ERROR = (
         "Не предусмотренная программой команда закрытия диалога command={command}"
     )
-    TEXT_ERROR_CONNECT = (
+    TEXT_ERROR_CHANGE_KEYBOARD = "Ошибка при изменении регистра клавиатуры {e}"
+    TEXT_ERROR_CHANGE_TEXT = "Ошибка при преобразовании/выводе текста пользователя. {e}"
+    TEXT_ERROR_CLOSE_HANDLER = "Не удалось закрыть чужой обработчик лога {name}"
+    TEXT_ERROR_CONNECT_BUTTON = (
         "Ошибка при назначении обработчиков кнопкам или другим объектам {e}"
     )
-    TEXT_ERROR_CUSTOM_UI = "Ошибка при настройке пользовательских интерфейсов {e}"
+    TEXT_ERROR_CONNECT_CLEANUP = (
+        "Ошибка подключения сигнала self.ctrl.cleanup. {type} - {e}:"
+    )
+    TEXT_ERROR_CONNECT = "Ошибка подключения сигнала"
+    TEXT_ERROR_CONNECT_SIGNAL = "Ошибка подключения сигнала"
+    TEXT_ERROR_CREATE_APP = "Ошибка при создании QT приложения (APP) {type} - {e}"
+    TEXT_ERROR_CUSTOM_UI = "Ошибка при настройке пользовательских интерфейсов"
+    TEXT_ERROR_EXIT = "Ошибка при выходе из приложения. {e}"
     TEXT_ERROR_GET_VAR_1 = "Метод get_var класса Variables.\nПервый параметр {name} имеет тип отличный от str"
     TEXT_ERROR_GET_VAR_2 = "Метод get_var класса Variables.\nВторой параметр {default} имеет тип отличный от str"
-    TEXT_ERROR_INIT_BUTTON = "Ошибка инициализации кнопок всплывающего окна {e}"
     TEXT_ERROR_LOAD_UI = (
-        "Ошибка загрузки UI (Описаний окна, подготовленных QtDesigner - {e}"
+        "Ошибка загрузки UI (Описаний окна, подготовленных QtDesigner) {ui_path}"
     )
     TEXT_ERROR_LOG_LEVEL_NAME = "Некорректное значение уровня для {env_name}: {name}"
-    TEXT_ERROR_PROCESSING_CLIPBOARD = " Ошибка при чтении из буфера обмена {e}"
+    TEXT_ERROR_ON_NO = "Ошибка в диалоговом окне при нажатии на кнопку NO"
+    TEXT_ERROR_ORIGINAL_TEXT = "Ошибка отображения выделенного текста {e}"
+    TEXT_ERROR_PROCESSING_CLIPBOARD = (
+        " Ошибка при чтении из буфера обмена {type_error}. {e}"
+    )
+    TEXT_ERROR_PROCESSING_CLIPBOARD_1 = "Чтение буфера обмена"
     TEXT_ERROR_REGISTER_HOTKEY = (
         "Отказано в регистрации горячей клавиши  hk_id={hk_id} mods={mods} vk={vk}"
     )
     TEXT_ERROR_REPLACE_TEXT = "Ошибка при формировании/записи заменяющего текста"
+    TEXT_ERROR_SCROLL = "Ошибка при вызове окна диалога. {e}"
+    TEXT_ERROR_SEND_INPUT = "Ошибка SendInput"
     TEXT_ERROR_START_APP = "Фатальная ошибка на старте приложения {e}"
-    TEXT_ERROR_PUT_ORIGINAL_TEXT = (
-        "Ошибка при отображении в сплывающее окно текста пользователя {e}"
-    )
     TEXT_ERROR_SHOW_REPLACEMENTS_TEXT = (
         "Ошибка при формировании/отображении замещающего текст {e}"
     )
+    TEXT_ERROR_TRAY = "Ошибка при создании трея. {e}"
     TEXT_ERROR_TUNE_LOGGER = "Настройка логирования завершилась ошибкой {e}"
+    TEXT_ERROR_UNLOAD_HOOK = "Ошибка при деинсталляции KeyboardHook {e}"
+    TEXT_ERROR_UNREGISTER_HOTKEY = (
+        "Ошибка при завершении регистрации горячих клавиш {e}"
+    )
     TEXT_WINDOW_NOT_FOUND = "Название окна неизвестно"
 
     def __setattr__(self, key, value):

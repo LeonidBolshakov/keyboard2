@@ -1,11 +1,12 @@
 """Класс организации диалога с пользователем"""
 
+from typing import Callable
 import logging
 
 logger = logging.getLogger()
 
 from PyQt6 import uic
-from PyQt6.QtGui import QKeyEvent, QCloseEvent
+from PyQt6.QtGui import QCloseEvent, QKeySequence, QShortcut
 from PyQt6.QtCore import Qt, QTimer, QCoreApplication
 from PyQt6.QtWidgets import QMainWindow, QDialogButtonBox, QPushButton
 
@@ -24,7 +25,44 @@ def safe_exit():
     try:
         QCoreApplication.exit()
     except Exception as e:
-        logger.error("Ошибка выхода: %s", e)
+        logger.error(C.TEXT_ERROR_EXIT.format(e=e))
+        raise
+
+
+def add_shortcut(
+    self,
+    attr_name: str,
+    key: str | QKeySequence,
+    slot: Callable,
+) -> QShortcut:
+    sc = QShortcut(QKeySequence(key), self)
+    sc.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+    sc.setAutoRepeat(False)
+    sc.activated.connect(slot)
+    setattr(self, attr_name, sc)  # сохранить ссылку: self.sc_yes и т.п.
+    return sc
+
+
+from functools import wraps
+
+
+def log_exceptions(name: str | None = None):
+    def deco(fn):
+        @wraps(fn)
+        def w(*a, **k):
+            try:
+                need = (
+                    fn.__code__.co_argcount
+                )  # сколько позиционных ждёт fn (включая self)
+                return fn(
+                    *a[:need], **k
+                )  # отбросить, например, checked из clicked(bool)
+            except Exception:
+                logger.exception(name or fn.__qualname__)
+
+        return w
+
+    return deco
 
 
 # noinspection PyUnresolvedReferences
@@ -56,30 +94,14 @@ class MainWindow(QMainWindow):
         self.set_connects()  # Назначаем обработчики событий
         self.setup_signals()
         self.custom_UI()  # Делаем пользовательские настройки интерфейса
+        self.add_shortcuts()  # Назначаем горячие клавиши
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:
-        """
-        Переопределение метода. Перехватываем ввод с клавиатуры.
-        Обрабатываем специальные клавиши
-        :param event: (QKeyEvent). Событие нажатия клавиши
-        :return: None
-        """
-        try:
-            if not f.run_special_key(event):  # Обрабатываем специальные клавиши
-                super().keyPressEvent(
-                    event
-                )  # Для остальных клавиш передаём обработку системе
-        except Exception as e:
-            logger.exception(e)
-
+    @log_exceptions
     def closeEvent(self, event: QCloseEvent) -> None:
         """Переопределение метода. Перехватываем закрытие окна Пользователем"""
         # При закрытии окна пользователем сигнализируем об остановке диалога, но программу из памяти не выгружаем
-        try:
-            self.stop_dialogue(2)
-            event.ignore()
-        except Exception as e:
-            logger.exception(e)
+        self.stop_dialogue(2)
+        event.ignore()
 
     @staticmethod
     def info_start():
@@ -93,130 +115,120 @@ class MainWindow(QMainWindow):
 
     def init_UI(self) -> None:
         """Загрузка UI и атрибутов полей в объект класса"""
+        ui_path = f.get_exe_directory() / C.UI_PATH_FROM_EXE
+        if not ui_path.is_file():
+            raise FileNotFoundError(ui_path)
         try:
-            ui_config_abs_path = f.get_exe_directory() / C.UI_PATH_FROM_EXE
-            uic.loadUi(ui_config_abs_path, self)
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_LOAD_UI.format(e=e))
-            raise RuntimeError(C.TEXT_ERROR_LOAD_UI.format(e=e)) from e
+            uic.loadUi(str(ui_path), self)
+        except Exception:
+            logger.exception(C.TEXT_ERROR_LOAD_UI.format(ui_path=ui_path))
+            raise
 
     def init_buttons(self):
         """Присваиваем значения переменным программы"""
-        try:
-            self.yes_button = self.buttonBox.button(QDialogButtonBox.StandardButton.Yes)
-            self.no_button = self.buttonBox.button(QDialogButtonBox.StandardButton.No)
-            self.cancel_button = self.buttonBox.button(
-                QDialogButtonBox.StandardButton.Cancel
-            )
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_INIT_BUTTON.format(e=e))
-            raise RuntimeError(C.TEXT_ERROR_INIT_BUTTON.format(e=e)) from e
+        self.yes_button = self.buttonBox.button(QDialogButtonBox.StandardButton.Yes)
+        self.no_button = self.buttonBox.button(QDialogButtonBox.StandardButton.No)
+        self.cancel_button = self.buttonBox.button(
+            QDialogButtonBox.StandardButton.Cancel
+        )
 
+    @log_exceptions(C.TEXT_ERROR_CONNECT)
     def set_connects(self):
         """Назначаем обработчики"""
-        try:
-            # Обработчик событий для клика кнопок
-            try:
-                self.yes_button.clicked.connect(self.on_Yes)
-            except Exception as e:
-                print("Ошибка подключения сигнала:", e)
-            try:
-                self.no_button.clicked.connect(self.on_No)
-            except Exception as e:
-                print("Ошибка подключения сигнала:", e)
-            try:
-                self.cancel_button.clicked.connect(self.on_Cancel)
-            except Exception as e:
-                print("Ошибка подключения сигнала:", e)
 
-            # Обработчик изменения копии оригинального текста
-            try:
-                self.txtEditSource.textChanged.connect(self.change_original_text)
-            except Exception as e:
-                print("Ошибка подключения сигнала:", e)
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_CONNECT.format(e=e))
-            raise RuntimeError(C.TEXT_ERROR_CONNECT.format(e=e)) from e
+        # Обработчик событий для клика кнопок
+        self.yes_button.clicked.connect(self.on_Yes)
+        self.no_button.clicked.connect(self.on_No)
+        self.cancel_button.clicked.connect(self.on_Cancel)
 
+        # Обработчик изменения оригинального текста
+        self.txtEditSource.textChanged.connect(self.change_original_text)
+
+    @log_exceptions(C.TEXT_ERROR_CUSTOM_UI)
     def custom_UI(self):
         """Пользовательская настройка интерфейса"""
-        try:
-            # Устанавливаем размеры, стили, свойства и названия кнопок
-            f.making_button_settings(self.yes_button, C.TEXT_YES_BUTTON, C.QSS_YES)
-            f.making_button_settings(self.no_button, C.TEXT_NO_BUTTON, C.QSS_NO)
-            f.making_button_settings(self.cancel_button, C.TEXT_CANCEL_BUTTON)
+        # Устанавливаем размеры, стили, свойства и названия кнопок
+        f.making_button_settings(self.yes_button, C.TEXT_YES_BUTTON, C.QSS_YES)
+        f.making_button_settings(self.no_button, C.TEXT_NO_BUTTON, C.QSS_NO)
+        f.making_button_settings(self.cancel_button, C.TEXT_CANCEL_BUTTON)
 
-            # Устанавливаем стили текстовых полей
-            self.txtEditSource.setStyleSheet(C.QSS_TEXT)
-            self.txtEditReplace.setStyleSheet(C.QSS_TEXT)
+        # Устанавливаем стили текстовых полей
+        self.txtEditSource.setStyleSheet(C.QSS_TEXT)
+        self.txtEditReplace.setStyleSheet(C.QSS_TEXT)
 
-            # Кнопка Yes будет срабатывать по Enter
-            self.yes_button.setDefault(True)
+        # Кнопка Yes будет срабатывать по Enter
+        self.yes_button.setDefault(True)
 
-            # установить фокус в первое поле после показа окна
-            QTimer.singleShot(0, lambda: self.txtEditSource.setFocus())
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_CUSTOM_UI.format(e=e))
-            raise RuntimeError(C.TEXT_ERROR_CUSTOM_UI.format(e=e)) from e
+        # установить фокус в первое поле после показа окна
+        QTimer.singleShot(0, self.txtEditSource.setFocus)
 
-    def put_original_text(self, original_text: str) -> None:
+    def add_shortcuts(self) -> None:
+        add_shortcut(self, "sc_yes", "1", signals_bus.on_Yes)
+        add_shortcut(self, "sc_no", "2", signals_bus.on_No)
+        add_shortcut(self, "sc_cancel", "3", signals_bus.on_Cancel)
+        add_shortcut(self, "sc_esc", "Esc", signals_bus.on_No)
+
+    def show_original_text(self, original_text: str) -> None:
         """
         Отображаем текст пользователя
-        :param original_text: (str)/ текст пользователя
+        :param original_text: (str). Текст пользователя
         :return:
         """
-        try:
-            self.txtEditSource.setText(original_text)
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_PUT_ORIGINAL_TEXT.format(e=e))
+        self.txtEditSource.setText(original_text)
 
+    @log_exceptions("show_replacements_text")
     def show_replacements_text(self, replacement_text: str) -> None:
         """Отображаем вариант замены текста."""
-        try:
-            # ReplaceText может бросить исключение, страхуемся
-            self.txtEditReplace.setText(replacement_text)
-        except Exception as e:
-            # записываем стек в лог и подставляем исходный текст как fallback
-            logger.exception(e)
-            try:
-                self.txtEditReplace.setText(replacement_option_text)
-            except Exception:
-                pass
+        self.txtEditReplace.setText(replacement_text)
 
+    @log_exceptions(C.TEXT_ERROR_REPLACE_TEXT)
     def on_Yes(self):
         """Заменяем выделенный текст предложенным вариантом замены"""
-        try:
-            f.put_text_to_clipboard(self.txtEditReplace.toPlainText())
-            self.hide()  # Освобождаем фокус для окна с выделенным текстом
-            self.stop_dialogue(1)
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_REPLACE_TEXT.format(e=e))
+        f.put_text_to_clipboard(self.txtEditReplace.toPlainText())
+        self.hide()  # Освобождаем фокус для окна с выделенным текстом
+        self.stop_dialogue(1)
 
     @staticmethod
     def on_Cancel() -> None:
         """Выгружаем программу"""
         logger.info(C.LOGGER_TEXT_UNLOAD_PROGRAM)
-        QTimer.singleShot(0, lambda: safe_exit())
+        QTimer.singleShot(0, safe_exit)
 
+    @log_exceptions(C.TEXT_ERROR_ON_NO)
     def on_No(self) -> None:
         """Отказ от замены текста"""
-        try:
-            self.stop_dialogue(2)
-        except Exception as e:
-            logger.exception(e)
+        self.stop_dialogue(2)
 
     def processing_clipboard(self) -> None:
         """Обрабатываем буфер обмена"""
+
+        # 1. Получение выделения
         try:
-            clipboard_text = f.get_selection()
+            text = f.get_selection()
+        except (OSError, RuntimeError) as e:  # ожидаемые сбои ОС/окна
+            logger.warning(
+                C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(
+                    type_error=C.TEXT_ERROR_PROCESSING_CLIPBOARD_1, e=e
+                )
+            )
+            return
+        except Exception as e:  # неожиданное
+            logger.exception(
+                C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(type_error="?????", e=e)
+            )
+            return
 
-            # Если текст не выделен. Оставляем возможность вручную вставить его с помощью Ctrl_V
-            if not clipboard_text:
-                self.is_restore_clipboard = False
+        # 2. Пусто — мягко выходим
+        if not text:
+            self.is_restore_clipboard = False
+            return
 
-            self.put_original_text(clipboard_text)  # Отображаем обрабатываемый текст
+        # 3. Отрисовка/обновление UI
+        try:
+            self.show_original_text(text)
         except Exception as e:
-            logger.error(C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(e=e))
+            logger.warning(C.TEXT_ERROR_ORIGINAL_TEXT.format(e=e))
+        self.is_restore_clipboard = False
 
     def change_original_text(self) -> None:
         """Изменение оригинального текста"""
@@ -225,30 +237,30 @@ class MainWindow(QMainWindow):
             replacements_text = ReplaceText().swap_keyboard_register(original_text)
             self.show_replacements_text(replacements_text)
         except Exception as e:
-            logger.exception(e)
+            logger.exception(C.TEXT_ERROR_CHANGE_TEXT.format(e=e))
 
     def start_dialogue(self) -> None:
         """
         Начало работы с всплывающим окном.
         :return: None
         """
+        if not self.isHidden():  # Если диалог не закончен - новый не начинаем
+            return
         try:
-            if not self.isHidden():  # Если диалог не закончен - новый не начинаем
-                return
-
             window = f.get_window()  # Получаем активное окно операционной системы
+            title = window.title if window else C.TEXT_WINDOW_NOT_FOUND
+            logger.info(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
             if window:
                 window.activate()  # Поднимаем окно поверх других окон
                 title = window.title
             else:
                 title = C.TEXT_WINDOW_NOT_FOUND
 
-            logger.info(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
             # запоминаем буфер обмена для возможного дальнейшего восстановления
             try:
                 self.old_clipboard_text = f.get_clipboard_text()
             except Exception as e:
-                logger.exception(e)
+                logger.exception("clipboard read failed")
                 self.old_clipboard_text = ""
 
             self.is_restore_clipboard = True
@@ -260,7 +272,7 @@ class MainWindow(QMainWindow):
             # Делаем окно доступным для ввода с клавиатуры
             self.activateWindow()
         except Exception as e:
-            logger.exception(e)
+            logger.exception(C.TEXT_ERROR_SCROLL.format(e=e))
 
     def stop_dialogue(self, command: int) -> None:
         """
@@ -301,22 +313,11 @@ class MainWindow(QMainWindow):
                 self.hide()  # Убираем окно с экрана
             except Exception:
                 pass
-            logger.info(f"{C.LOGGER_TEXT_STOP_DIALOGUE}")
+            logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)
 
+    @log_exceptions(C.TEXT_ERROR_CONNECT_SIGNAL)
     def setup_signals(self) -> None:
         """Связываем сигнал с функцией обработки"""
-        try:
-            try:
-                signals_bus.on_Yes.connect(self.on_Yes)
-            except Exception as e:
-                print("Ошибка подключения сигнала:", e)
-            try:
-                signals_bus.on_No.connect(self.on_No)
-            except Exception as e:
-                print("Ошибка подключения сигнала:", e)
-            try:
-                signals_bus.on_Cancel.connect(self.on_Cancel)
-            except Exception as e:
-                print("Ошибка подключения сигнала:", e)
-        except Exception as e:
-            logger.exception(e)
+        signals_bus.on_Yes.connect(self.on_Yes)
+        signals_bus.on_No.connect(self.on_No)
+        signals_bus.on_Cancel.connect(self.on_Cancel)

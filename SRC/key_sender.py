@@ -35,6 +35,9 @@
 """
 
 from __future__ import annotations
+import logging
+
+logger = logging.getLogger(__name__)
 
 import ctypes
 import ctypes.wintypes as wt
@@ -43,6 +46,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from enum import IntEnum, IntFlag
 from typing import Iterable, Optional
+
+from SRC.constants import C
 
 __all__ = ["VK", "Timings", "KeystrokeAutomator"]
 __version__ = "2.0-doc"
@@ -233,7 +238,7 @@ class KeystrokeAutomator:
         self.key_down(vk)
         time.sleep(self.timings.press)
         self.key_up(vk)
-        time.sleep(self.timings.after)
+        self._after()
 
     def combo(self, main_vk: int | VK, modifiers: Iterable[int | VK]) -> None:
         """
@@ -254,7 +259,7 @@ class KeystrokeAutomator:
         for m in reversed(mods):
             self.key_up(m)
             time.sleep(self.timings.combo)
-        time.sleep(self.timings.after)
+        self._after()
 
     @contextmanager
     def hold(self, modifiers: Iterable[int]):
@@ -283,11 +288,11 @@ class KeystrokeAutomator:
         """
         if not inputs:
             return
+
         arr = (INPUT * len(inputs))(*inputs)  # непрерывный буфер
         sent = SendInput(len(arr), arr, ctypes.sizeof(INPUT))
         if sent != len(arr):
-            err = ctypes.get_last_error()
-            raise OSError(f"SendInput sent {sent}/{len(arr)} items, GetLastError={err}")
+            raise OSError(C.SENDINPUT_ERROR)
 
     # -------- UNICODE-ввод --------
     def send_unicode(self, text: str) -> None:
@@ -315,7 +320,7 @@ class KeystrokeAutomator:
                 )
             )
         self._send_inputs(ins)
-        time.sleep(self.timings.after)
+        self._after()
 
     # -------- SCANCODE-ввод --------
     @staticmethod
@@ -353,7 +358,7 @@ class KeystrokeAutomator:
         """Короткое нажатие клавиши `vk` через SCANCODE-ввод."""
         ins = [self.key_down_sc(vk, extended), self.key_up_sc(vk, extended)]
         self._send_inputs(ins)
-        time.sleep(self.timings.after)
+        self._after()
 
     def combo_sc(self, main_vk: int, modifiers: Iterable[int]) -> None:
         """
@@ -369,6 +374,9 @@ class KeystrokeAutomator:
         for m in reversed(mods):
             ins.append(self.key_up_sc(m))
         self._send_inputs(ins)
+        self._after()
+
+    def _after(self):
         time.sleep(self.timings.after)
 
 

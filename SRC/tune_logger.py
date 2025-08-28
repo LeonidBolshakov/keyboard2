@@ -138,7 +138,7 @@ class TuneLogger:
             try:
                 h.close()
             except Exception:
-                pass
+                print(C.TEXT_ERROR_CLOSE_HANDLER.format(name=h.name))
 
     def _get_log_level(self, env_name: str, default_name: str) -> int:
         """

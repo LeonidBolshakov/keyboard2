@@ -204,10 +204,6 @@ def press_ctrl(key_code: int, delay: float = 0.05):
     user32.keybd_event(VK_CONTROL, 0, KEY_EVENT_F_KEYUP, 0)
 
 
-HKL_NEXT = 1  # следующий язык/раскладка
-KLF_SET_FOR_PROCESS = 0x0100  # опционально: для всех потоков процесса
-
-
 def change_keyboard_case() -> None:
     """
     Эмулирует комбинацию Ctrl+Shift через WinAPI (keybd_event).

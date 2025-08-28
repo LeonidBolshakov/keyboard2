@@ -9,7 +9,7 @@
 
 Ключевые элементы
 -----------------
-- :class:`MainApp` — объединяет инициализацию Qt, UI, контроллера, трея,
+- :class:`StartApp` — объединяет инициализацию Qt, UI, контроллера, трея,
   глобальных и низкоуровневых горячих клавиш.
 - Глобальные константы :data:`VK_3, VK_4, VK_5, VK_9` и :data:`HK_MAIN` — коды клавиш и логический
   идентификатор горячей клавиши.
@@ -36,16 +36,17 @@ logger = logging.getLogger(__name__)
 
 from PyQt6 import QtWidgets
 
-from SRC.constants import C
+import SRC.functions as f
 from SRC.system_tray import Tray
 from SRC.single_instance import SingleInstance
 from SRC.main_window import MainWindow
 from SRC.hotkey_win import HotkeyFilter
 from SRC.controller import Controller
+from SRC.constants import C
 
 
-class MainApp:
-    """Точка входа и жизненный цикл приложения.
+class StartApp:
+    """жизненный цикл приложения.
 
     Отвечает за:
     - Создание ``QApplication`` и главного окна.
@@ -69,24 +70,29 @@ class MainApp:
         1. Проверка платформы и единственности экземпляра.
         2. Инициализация трея.
         3. Регистрация горячих клавиш.
-        4. Показ главного окна и вход в цикл событий.
+        4. Вход в цикл событий.
 
         Returns
         int
             Код завершения ``QApplication.exec()``.
         """
-        if not self.can_continue():
+        if not self.can_we_continue():
+            f.show_message(
+                C.TEXT_MESSAGE_NO_START_PROGRAM,
+                C.TIME_MESSAGE_NO_START_PROGRAM,
+                C.COLOR_MESSAGE_NO_START_PROGRAM,
+            )
             raise SystemExit(1)
 
         self.ctrl.register_global_hotkeys()
         self.ctrl.set_single_hotkeys()
-        self.connect_cleanup()
+        self.connect_to_quit()
         self.app.installNativeEventFilter(self.hk_filter)
         self.create_tray()
 
         return self.app.exec()
 
-    def can_continue(self) -> bool:
+    def can_we_continue(self) -> bool:
         """Проверяет совместимость платформы и отсутствие второго экземпляра.
 
         Returns
@@ -102,12 +108,18 @@ class MainApp:
             return False
         return True
 
-    def connect_cleanup(self) -> None:
-        """Подключение сигнала cleanup"""
+    def connect_to_quit(self) -> None:
+        """По окончанию работы освобождаем ресурсы"""
         try:
             self.app.aboutToQuit.connect(self.ctrl.cleanup)  # type: ignore[arg-type]
+        except AttributeError as e:
+            logger.warning(
+                C.TEXT_ERROR_CONNECT_CLEANUP.format(type="AttributeError", e=e)
+            )
+        except TypeError as e:
+            logger.warning(C.TEXT_ERROR_CONNECT_CLEANUP.format(type="TypeError", e=e))
         except Exception as e:
-            print("Ошибка подключения сигнала self.ctrl.cleanup:", e)
+            logger.warning(C.TEXT_ERROR_CONNECT_CLEANUP.format(type="?????", e=e))
 
     def create_app(self) -> QtWidgets.QApplication:
         """Создаёт и настраивает ``QApplication``.
@@ -115,19 +127,30 @@ class MainApp:
         Возвращает объект приложения, отключает авто‑выход при закрытии всех
         окон, подключает обработчик завершения.
         """
-        app = QtWidgets.QApplication(sys.argv)
-        app.setQuitOnLastWindowClosed(
-            False
-        )  # Оставляем app в памяти даже при закрытии всех окон
-        return app
+        try:
+            app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
+            app.setQuitOnLastWindowClosed(
+                False
+            )  # Оставляем app в памяти даже при закрытии всех окон
+            return app
+        except RuntimeError as e:
+            logger.error(C.TEXT_ERROR_CREATE_APP.format(type="RuntimeError", e=e))
+        except TypeError as e:
+            logger.error(C.TEXT_ERROR_CREATE_APP.format(type="TypeError", e=e))
+        except Exception as e:
+            logger.error(C.TEXT_ERROR_CREATE_APP.format(type="??????", e=e))
+        raise
 
     def create_tray(self) -> None:
         """Создаёт системный трей и регистрирует действия меню."""
-        Tray(
-            self.app,
-            on_quit=self.do_quit,
-            actions={"Вызов диалога": self.ui.start_dialogue},
-        )
+        try:
+            Tray(
+                self.app,
+                on_quit=self.do_quit,
+                actions={"Вызов диалога": self.ui.start_dialogue},
+            )
+        except Exception as e:
+            logger.warning(C.TEXT_ERROR_TRAY.format(e=e))
 
     def do_quit(self) -> None:
         """Корректно завершает цикл Qt."""
@@ -137,7 +160,6 @@ class MainApp:
         """Гарантирует запуск единственного экземпляра приложения.
 
         Returns
-        -------
         bool
             ``True`` если владение получено. Иначе ``False`` и выводится
             диагностическое сообщение в лог.
@@ -158,4 +180,4 @@ class MainApp:
 
 
 if __name__ == "__main__":
-    sys.exit(MainApp().main_app())
+    sys.exit(StartApp().main_app())

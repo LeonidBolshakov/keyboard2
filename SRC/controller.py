@@ -11,7 +11,6 @@
     - Класс Controller с методами для обработки событий.
 """
 
-# Коды виртуальных клавиш: левый и правый Ctrl
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,17 +22,8 @@ from SRC.hotkey_win import (
     MOD_NOREPEAT,  # Отключает автоповтор события, если пользователь держит клавишу
 )
 from SRC.ll_keyboard import KeyboardHook, VK_CAPITAL, VK_SCROLL, change_keyboard_case
-
-
-def safe_slot(fn):
-    def _w(*args, **kwargs):
-        try:
-            return fn(*args, **kwargs)
-        except Exception as e:
-            logger.error(f"Ошибка в слоте {fn.__name__}: %s", e)
-
-    return _w
-
+from SRC.key_sender import KeystrokeAutomator, Timings
+from constants import C
 
 VK_LCONTROL, VK_RCONTROL = 0xA2, 0xA3
 
@@ -58,8 +48,8 @@ class Controller:
         """
         self.ui = ui
         self._low_level_hook: KeyboardHook | None = None
+        self.kb = KeystrokeAutomator(Timings(press=0.02, after=0.20, combo=0.02))
 
-    @safe_slot
     def on_hotkey(self, hk_id: int, mods: int, vk: int):
         """
         Обработчик глобальной горячей клавиши WM_HOTKEY.
@@ -77,13 +67,15 @@ class Controller:
         # Добавляем сообщение в UI
         print(f"WM_HOTKEY id={hk_id} vk=0x{vk:X} mods=0x{mods:X}")
 
-    @safe_slot
     def on_caps(self):
         """Вызывается при нажатии CapsLock."""
-        change_keyboard_case()
+        try:
+            change_keyboard_case()
+        except Exception as e:
+            logger.error(C.TEXT_ERROR_CHANGE_KEYBOARD.format(e=e))
+
         return True
 
-    @safe_slot
     def on_scroll(self):
         """Вызывается при нажатии ScrollLock."""
         self.ui.start_dialogue()
@@ -107,10 +99,18 @@ class Controller:
         hook.install()
         self._low_level_hook = hook
 
+    def press_ctrl(self, vk: int) -> None:
+        self.kb.combo_sc(vk, [MOD_CONTROL])
+
     def cleanup(self) -> None:
         """Освобождает ресурсы перед завершением приложения"""
-
-        unregister_hotkey(HK_MAIN)
-        hook = self._low_level_hook
-        if hook is not None:
-            hook.uninstall()
+        try:
+            unregister_hotkey(HK_MAIN)
+        except Exception as e:
+            logger.warning(C.TEXT_ERROR_UNREGISTER_HOTKEY.format(e=e))
+            hook = self._low_level_hook
+            if hook is not None:
+                try:
+                    hook.uninstall()
+                except Exception as e:
+                    logger.error(C.TEXT_ERROR_UNLOAD_HOOK.format(e=e))
