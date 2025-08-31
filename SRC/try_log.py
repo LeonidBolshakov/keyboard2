@@ -30,7 +30,7 @@ def log_exceptions(_fn=None, *, name: str | None = None, reraise: bool = False):
     return _decorate
 
 
-#
+# Расширенный вариант. Для будущих разработок.
 # # pyqt6_loguru_demo.py
 # import sys
 # from PyQt6 import QtWidgets, QtCore

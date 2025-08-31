@@ -11,7 +11,6 @@ constants.py — неизменяемые константы.
 """
 
 import logging
-
 from pathlib import Path
 
 from PyQt6.QtGui import QColor
@@ -39,7 +38,9 @@ class _Const:
     FILE_LOG_PATH_DEF: str = str(Path(FILE_LOG_DIR_DEF) / FILE_LOG_FILENAME_DEF)
 
     # --- Формат сообщений
-    LOG_FORMAT: str = "%(asctime)s %(levelname)s %(name)s %(message)s"
+    LOG_FORMAT: str = (
+        "%(asctime)s %(levelname)s %(name)s:%(lineno)d %(funcName)s %(message)s"
+    )
 
     # --- Ротация файла
     ROTATING_MAX_BYTES: int = 10_000
@@ -97,10 +98,11 @@ class _Const:
     # --- Настройки кнопок
     MIN_WIDTH_BUTTON = 170  # Минимальная ширина первых двух кнопок
     QSS_BUTTON = "font-weight: bold; font-size: 12pt; "
-    QSS_NO = "color: darkblue;"
-    QSS_TEXT = "color: mediumblue;"  # Силь текстовых полей диалога
-    QSS_YES = "color: blue;"
-    TEXT_CANCEL_BUTTON = "Выгрузить программу\nНажми 3"
+    QSS_CANCEL = "color: lightblue"
+    QSS_NO = "color: blue"
+    QSS_TEXT = "color: mediumblue"  # Силь текстовых полей диалога
+    QSS_YES = "color: blue"
+    TEXT_CANCEL_BUTTON = "Выгруз. программу\nНажми 3"
     TEXT_NO_BUTTON = "Не заменять\nНажми 2/Esc"
     TEXT_YES_BUTTON = "Заменить\nНажми 1"
 
@@ -111,18 +113,16 @@ class _Const:
     TEXT_CRITICAL_ERROR = (
         "Не предусмотренная программой команда закрытия диалога command={command}"
     )
-    TEXT_ERROR_CHANGE_KEYBOARD = "Ошибка при изменении регистра клавиатуры {e}"
+    TEXT_ERROR_CHANGE_KEYBOARD = "Ошибка при изменении регистра клавиатуры"
     TEXT_ERROR_CHANGE_TEXT = "Ошибка при преобразовании/выводе текста пользователя. {e}"
     TEXT_ERROR_CLOSE_HANDLER = "Не удалось закрыть чужой обработчик лога {name}"
     TEXT_ERROR_CONNECT_BUTTON = (
         "Ошибка при назначении обработчиков кнопкам или другим объектам {e}"
     )
-    TEXT_ERROR_CONNECT_CLEANUP = (
-        "Ошибка подключения сигнала self.ctrl.cleanup. {type} - {e}:"
-    )
+    TEXT_ERROR_CONNECT_CLEANUP = "Ошибка подключения сигнала self.control.cleanup."
     TEXT_ERROR_CONNECT = "Ошибка подключения сигнала"
     TEXT_ERROR_CONNECT_SIGNAL = "Ошибка подключения сигнала"
-    TEXT_ERROR_CREATE_APP = "Ошибка при создании QT приложения (APP) {type} - {e}"
+    TEXT_ERROR_CREATE_APP = "Ошибка при создании QT приложения (APP)"
     TEXT_ERROR_CUSTOM_UI = "Ошибка при настройке пользовательских интерфейсов"
     TEXT_ERROR_EXIT = "Ошибка при выходе из приложения. {e}"
     TEXT_ERROR_GET_VAR_1 = "Метод get_var класса Variables.\nПервый параметр {name} имеет тип отличный от str"
@@ -139,7 +139,6 @@ class _Const:
     TEXT_ERROR_PROCESSING_CLIPBOARD_1 = "Чтение буфера обмена"
     TEXT_ERROR_REPLACE_TEXT = "Ошибка при формировании/записи заменяющего текста"
     TEXT_ERROR_SCROLL = "Ошибка при вызове окна диалога. {e}"
-    TEXT_ERROR_SEND_INPUT = "Ошибка SendInput"
     TEXT_ERROR_START_APP = "Фатальная ошибка на старте приложения {e}"
     TEXT_ERROR_STOP_DIALOG = "Ошибка при завершении диалога"
     TEXT_ERROR_SHOW_REPLACEMENTS_TEXT = (

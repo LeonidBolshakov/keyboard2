@@ -27,7 +27,7 @@ class CustomTextEdit(QTextEdit):
     def run_special_key(event: QKeyEvent) -> bool:
         """Обрабатываем нажатие горячих клавиш кнопок"""
         match event.key():
-            case Qt.Key.Key_1:  # Заменять текст
+            case Qt.Key.Key_1:  # Заменить текст
                 signals_bus.on_Yes.emit()
             case Qt.Key.Key_Escape:  # Отказ от замены
                 signals_bus.on_No.emit()

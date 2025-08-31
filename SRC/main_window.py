@@ -25,32 +25,6 @@ class DialogResult(IntEnum):
     SKIP = 2  # отказ от замены выделенного текста
 
 
-def safe_exit():
-    """
-    Корректное завершение приложения Qt.
-    Перехватывает ошибки при вызове QCoreApplication.exit().
-    """
-    try:
-        QCoreApplication.exit()
-    except Exception as e:
-        logger.error(C.TEXT_ERROR_EXIT.format(e=e))
-        raise
-
-
-def add_shortcut(
-    self,
-    attr_name: str,
-    key: str | QKeySequence,
-    slot: Callable,
-) -> QShortcut:
-    sc = QShortcut(QKeySequence(key), self)
-    sc.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
-    sc.setAutoRepeat(False)
-    sc.activated.connect(slot)
-    setattr(self, attr_name, sc)  # сохранить ссылку: self.sc_yes и т.п.
-    return sc
-
-
 # noinspection PyUnresolvedReferences
 class MainWindow(QMainWindow):
     """Класс организации диалога с пользователем"""
@@ -136,7 +110,7 @@ class MainWindow(QMainWindow):
         # Устанавливаем размеры, стили, свойства и названия кнопок
         f.making_button_settings(self.yes_button, C.TEXT_YES_BUTTON, C.QSS_YES)
         f.making_button_settings(self.no_button, C.TEXT_NO_BUTTON, C.QSS_NO)
-        f.making_button_settings(self.cancel_button, C.TEXT_CANCEL_BUTTON)
+        f.making_button_settings(self.cancel_button, C.TEXT_CANCEL_BUTTON, C.QSS_CANCEL)
 
         # Устанавливаем стили текстовых полей
         self.txtEditSource.setStyleSheet(C.QSS_TEXT)
@@ -149,10 +123,10 @@ class MainWindow(QMainWindow):
         QTimer.singleShot(0, self.txtEditSource.setFocus)
 
     def add_shortcuts(self) -> None:
-        add_shortcut(self, "sc_yes", "1", signals_bus.on_Yes)
-        add_shortcut(self, "sc_no", "2", signals_bus.on_No)
-        add_shortcut(self, "sc_cancel", "3", signals_bus.on_Cancel)
-        add_shortcut(self, "sc_esc", "Esc", signals_bus.on_No)
+        self.add_shortcut("sc_yes", "1", signals_bus.on_Yes)
+        self.add_shortcut("sc_no", "2", signals_bus.on_No)
+        self.add_shortcut("sc_cancel", "3", signals_bus.on_Cancel)
+        self.add_shortcut("sc_esc", "Esc", signals_bus.on_No)
 
     def show_original_text(self, original_text: str) -> None:
         """
@@ -174,11 +148,12 @@ class MainWindow(QMainWindow):
         self.hide()  # Освобождаем фокус для окна с выделенным текстом
         self.stop_dialogue(DialogResult.REPLACE)
 
-    @staticmethod
-    def on_Cancel() -> None:
+    def on_Cancel(self) -> None:
         """Выгружаем программу"""
+        self.stop_dialogue(DialogResult.EXIT)
         logger.info(C.LOGGER_TEXT_UNLOAD_PROGRAM)
-        QTimer.singleShot(0, safe_exit)
+        logging.shutdown()
+        QTimer.singleShot(0, self.safe_exit)
 
     @log_exceptions(C.TEXT_ERROR_ON_NO)
     def on_No(self) -> None:
@@ -234,6 +209,11 @@ class MainWindow(QMainWindow):
         if not self.isHidden():  # Если диалог не закончен - новый не начинаем
             return
 
+        self.info_start_dialog()
+        self.working_with_clipboard()
+        self.working_with_window()
+
+    def info_start_dialog(self):
         window = f.get_window()  # Получаем активное окно операционной системы
         if window:
             window.activate()  # Поднимаем окно поверх других окон
@@ -242,11 +222,13 @@ class MainWindow(QMainWindow):
             title = C.TEXT_WINDOW_NOT_FOUND
         logger.info(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
 
+    def working_with_clipboard(self) -> None:
         # запоминаем буфер обмена для возможного дальнейшего восстановления
         self.old_clipboard_text = f.get_clipboard_text()
-
         self.is_restore_clipboard = True
         self.processing_clipboard()  # Обрабатываем буфер обмена
+
+    def working_with_window(self) -> None:
         self.setWindowFlag(
             Qt.WindowType.WindowStaysOnTopHint, True
         )  # Поднимаем окно диалога над всеми окнами
@@ -256,11 +238,17 @@ class MainWindow(QMainWindow):
 
     @log_exceptions(C.TEXT_ERROR_STOP_DIALOG)
     def stop_dialogue(self, command: DialogResult) -> None:
+        self.processing_command(command)
+        self.restore_clipboard()
+        self.hide()  # Убираем окно с экрана
+
+        logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)
+
+    def processing_command(self, command: DialogResult):
         """
         Выполняем команду, заданную в параметре.
         : command: (int) - Код команды закрытия диалога
         """
-        # Обрабатываем команду
         match command:
             case DialogResult.EXIT:  # Выгрузка программы
                 pass
@@ -269,8 +257,9 @@ class MainWindow(QMainWindow):
             case DialogResult.SKIP:  # Отказ от замены текста
                 pass
             case _:  # Непредусмотренная команда
-                logger.critical(C.TEXT_CRITICAL_ERROR.format(command=self.command))
+                logger.critical(C.TEXT_CRITICAL_ERROR.format(command=command))
 
+    def restore_clipboard(self) -> None:
         # Если буфер обмена не требуется для завершения действий Пользователя,
         # то восстанавливаем первоначальный буфер обмена
         if self.is_restore_clipboard:
@@ -281,13 +270,43 @@ class MainWindow(QMainWindow):
                 )
             )
 
-        self.hide()  # Убираем окно с экрана
-        logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)
-
     @log_exceptions(C.TEXT_ERROR_CONNECT_SIGNAL)
     def setup_signals(self) -> None:
         """Связываем сигнал с функцией обработки"""
-        1 / 0
         signals_bus.on_Yes.connect(self.on_Yes)
         signals_bus.on_No.connect(self.on_No)
         signals_bus.on_Cancel.connect(self.on_Cancel)
+        signals_bus.start_dialog.connect(self.start_dialogue)
+
+    def add_shortcut(
+        self,
+        attr_name: str,
+        key: str | QKeySequence,
+        slot: Callable,
+    ) -> QShortcut:
+        """
+        Назначение горячей клавиши главного (единственного) окна программы
+        :param self:
+        :param attr_name: Имя атрибута для сохранения ссылки, что бы не удалил сборщик мусора
+        :param key: Текстовок или QKeySequence обозначение клавиши.
+        :param slot: Signal, который надо активировать, при нажатии клавиши
+        :return: горячая клавиша
+        """
+        sc = QShortcut(QKeySequence(key), self)
+        sc.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+        sc.setAutoRepeat(False)
+        sc.activated.connect(slot)
+        setattr(self, attr_name, sc)  # сохранить ссылку: self.sc_yes и т.п.
+        return sc
+
+    @staticmethod
+    def safe_exit():
+        """
+        Корректное завершение приложения Qt.
+        Перехватывает ошибки при вызове QCoreApplication.exit().
+        """
+        try:
+            QCoreApplication.exit()
+        except Exception as e:
+            logger.error(C.TEXT_ERROR_EXIT.format(e=e))
+            raise

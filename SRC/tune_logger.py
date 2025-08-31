@@ -92,8 +92,6 @@ class TuneLogger:
         self.console_handler.setLevel(console_log_level)
         self.file_handler.setLevel(file_log_level)
 
-        logging.getLogger("PyQt6.uic").setLevel(logging.WARNING)
-
         root = logging.getLogger()
         root.setLevel(min(console_log_level, file_log_level))
 

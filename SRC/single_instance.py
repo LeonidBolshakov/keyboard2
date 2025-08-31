@@ -44,7 +44,9 @@ class SingleInstance:
     Возвращает True, если удалось создать сегмент и данный процесс стал владельцем.
     """
 
-    def __init__(self, key="__hotkey_singleton__"):
+    def __init__(self, key="b3763eeb-ec63-4245-a014-5fd2b240e294"):
+        # key - сгенерированный UUID
+
         self.mem = QtCore.QSharedMemory(key)
 
     def already_running(self) -> bool:
@@ -57,9 +59,10 @@ class SingleInstance:
             return True
         return False
 
-    def claim_ownership(self) -> bool:
+    def request_ownership(self) -> bool:
         """
         Пытается создать сегмент (размер 1 байт). Возвращает True,
         если создание удалось и теперь этот процесс — «владелец» ключа.
+        Если другая программа, в конкурентом режиме, захватила память, то "тапки её"
         """
         return self.mem.create(1)

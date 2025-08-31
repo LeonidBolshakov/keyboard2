@@ -21,9 +21,6 @@ logger = getLogger(__name__)
 
 from dotenv import load_dotenv
 
-# Загружаем переменные окружения из файла .env (если он существует)
-load_dotenv()
-
 from SRC.constants import C
 
 
@@ -37,6 +34,10 @@ class Variables:
         иначе возвращает `default`. Если аргументы переданы не как строки,
         возбуждает TypeError и пишет сообщение об ошибке в лог.
     """
+
+    def __init__(self):
+        # Загружаем переменные окружения из файла .env (если он существует)
+        load_dotenv()
 
     def get_var(self, name: str, default: str) -> str:
         if not isinstance(name, str):

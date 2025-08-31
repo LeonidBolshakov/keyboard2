@@ -1,18 +1,16 @@
-"""GUI приложение на PyQt6 с системным треем, глобальными горячими клавишами и блокировкой
-второго экземпляра.
+"""GUI приложение на PyQt6 с системным треем, глобальными и одиночными горячими клавишами и
+блокировкой запуска второго экземпляра программы
 
 Назначение модуля
 -----------------
 Запускает главный цикл Qt, создаёт основное окно, системный трей и регистрирует
-глобальные горячие клавиши. Следит, чтобы приложение существовало в одном
-экземпляре.
+глобальные и одиночные горячие клавиши.
+Следит, чтобы приложение существовало в одном экземпляре.
 
 Ключевые элементы
 -----------------
 - :class:`StartApp` — объединяет инициализацию Qt, UI, контроллера, трея,
   глобальных и низкоуровневых горячих клавиш.
-- Глобальные константы :data:`VK_3, VK_4, VK_5, VK_9` и :data:`HK_MAIN` — коды клавиш и логический
-  идентификатор горячей клавиши.
 
 Зависимости
 -----------
@@ -42,6 +40,7 @@ from SRC.single_instance import SingleInstance
 from SRC.main_window import MainWindow
 from SRC.hotkey_win import HotkeyFilter
 from SRC.controller import Controller
+from SRC.try_log import log_exceptions
 from SRC.constants import C
 
 
@@ -59,12 +58,13 @@ class StartApp:
         """Готовит инфраструктуру: ``QApplication``, UI и контроллер."""
         super().__init__()
 
-        self.app: QtWidgets.QApplication = self.create_app()
-        self.ui: MainWindow = MainWindow()
-        self.ctrl: Controller = Controller(self.ui)
-        self.hk_filter = HotkeyFilter(self.ctrl.on_hotkey)
-        self.app.installEventFilter(self.hk_filter)
+        self.app = self.create_app()
+        self.ui = MainWindow()
+        self.control = Controller()
+        self.hk_filter = HotkeyFilter(self.control.on_hotkey)
+        self.app.installNativeEventFilter(self.hk_filter)
 
+    @log_exceptions
     def main_app(self) -> int:
         """Запускает приложение.
 
@@ -86,10 +86,10 @@ class StartApp:
             )
             raise SystemExit(1)
 
-        self.ctrl.register_global_hotkeys()
-        self.ctrl.set_single_hotkeys()
+        _ = int(self.ui.winId())
+        self.control.register_global_hotkeys()
+        self.control.set_single_hotkeys()
         self.connect_to_quit()
-        self.app.installNativeEventFilter(self.hk_filter)
         self.create_tray()
 
         return self.app.exec()
@@ -110,38 +110,23 @@ class StartApp:
             return False
         return True
 
+    @log_exceptions(C.TEXT_ERROR_CONNECT_CLEANUP)
     def connect_to_quit(self) -> None:
-        """По окончанию работы освобождаем ресурсы"""
-        try:
-            self.app.aboutToQuit.connect(self.ctrl.cleanup)  # type: ignore[arg-type]
-        except AttributeError as e:
-            logger.warning(
-                C.TEXT_ERROR_CONNECT_CLEANUP.format(type="AttributeError", e=e)
-            )
-        except TypeError as e:
-            logger.warning(C.TEXT_ERROR_CONNECT_CLEANUP.format(type="TypeError", e=e))
-        except Exception as e:
-            logger.warning(C.TEXT_ERROR_CONNECT_CLEANUP.format(type="?????", e=e))
+        """Привязывает программу, которая по окончанию работы освобождает ресурсы"""
+        self.app.aboutToQuit.connect(self.control.cleanup)  # type: ignore[arg-type]
 
+    @log_exceptions(C.TEXT_ERROR_CREATE_APP)
     def create_app(self) -> QtWidgets.QApplication:
         """Создаёт и настраивает ``QApplication``.
 
         Возвращает объект приложения, отключает авто‑выход при закрытии всех
         окон, подключает обработчик завершения.
         """
-        try:
-            app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
-            app.setQuitOnLastWindowClosed(
-                False
-            )  # Оставляем app в памяти даже при закрытии всех окон
-            return app
-        except RuntimeError as e:
-            logger.error(C.TEXT_ERROR_CREATE_APP.format(type="RuntimeError", e=e))
-        except TypeError as e:
-            logger.error(C.TEXT_ERROR_CREATE_APP.format(type="TypeError", e=e))
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_CREATE_APP.format(type="??????", e=e))
-        raise
+        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
+        app.setQuitOnLastWindowClosed(
+            False
+        )  # Оставляем app в памяти даже при закрытии всех окон
+        return app
 
     def create_tray(self) -> None:
         """Создаёт системный трей и регистрирует действия меню."""
@@ -173,7 +158,7 @@ class StartApp:
             return False
 
         if (
-            not single.claim_ownership()
+            not single.request_ownership()
         ):  # Проиграл в конкуренции при одновременном запуске с другой программой
             logger.info(C.SINGLE_TEXT)
             return False

@@ -15,7 +15,7 @@ from SRC.constants import C
 
 logger = logging.getLogger(__name__)
 
-ctrl = Controller()
+controller = Controller()
 
 
 def show_message(
@@ -47,14 +47,18 @@ def show_message(
 def making_button_settings(button: QPushButton, text: str, qss: str = "") -> None:
     """
     Настраивает свойства кнопки
-    :param button: (QPushButton - Кнопка
+    :param button: (QPushButton) - Кнопка
     :param text: (str) - Текст кнопки
     :param qss: (str) - Стиль кнопки
     :return: None
     """
     button.setMinimumWidth(C.MIN_WIDTH_BUTTON)
+
     if qss:
-        button.setStyleSheet(qss + C.QSS_BUTTON)
+        button.setStyleSheet(qss + "; " + C.QSS_BUTTON + ";")
+    else:
+        button.setStyleSheet(C.QSS_BUTTON + ";")
+
     button.setText(text)
 
     # Определяем, что если на кнопке установлен фокус, то при нажатии Enter она нажимается.
@@ -76,7 +80,7 @@ def put_text_to_clipboard(text: str) -> None:
 
 def get_selection() -> str:
     """
-    Записываем выделенный текст в буфер обмена, считываем его оттуда и возвращаем.
+    Записываем выделенный на экране текст в буфер обмена, считываем его оттуда и возвращаем.
     В случае неудачи делаем несколько попыток.
 
     :return: (str) - Выделенный текст или '' (пустая строка).
@@ -105,7 +109,7 @@ def get_it_once(time_delay: float) -> str | None:
 
     QApplication.clipboard().clear()
     VK_C = 0x43  # "C"
-    ctrl.press_ctrl(VK_C)
+    controller.press_ctrl(VK_C)
     return get_clipboard_text()
 
 

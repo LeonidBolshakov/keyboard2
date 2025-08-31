@@ -4,53 +4,51 @@
 Назначение:
     Класс Controller связывает интерфейс пользователя (UI) с обработкой
     глобальных горячих клавиш и специальных клавиш (CapsLock, ScrollLock).
-
-Содержимое:
-    - Импорт функций WinAPI для проверки состояния клавиш.
-    - Константы кодов левого и правого Control.
-    - Класс Controller с методами для обработки событий.
 """
 
+from typing import Callable
 import logging
 
 logger = logging.getLogger(__name__)
 
-from SRC.hotkey_win import (
-    register_hotkey,
-    unregister_hotkey,
-    MOD_CONTROL,  # Требует нажатия клавиши Ctrl
-    MOD_NOREPEAT,  # Отключает автоповтор события, если пользователь держит клавишу
-)
+from SRC.hotkey_win import HotkeysWin
+from SRC.try_log import log_exceptions
+from SRC.signals import signals_bus
 import SRC.ll_keyboard as llk
 from SRC.constants import C
-
-
-# ID горячих клавиш и идентификатор горячей клавиши
-VK_3: int = 0x33  # Код клавиши '3'
-VK_4: int = 0x34  # Код клавиши '4'
-VK_5: int = 0x35  # Код клавиши '5'
-VK_9: int = 0x39  # Код клавиши '9'
-VK_CONTROL: int = 0x11  # Модификатор 'ctrl'
-
-HK_MAIN: int = 1  # Логический идентификатор горячей клавиши
 
 
 class Controller:
     """Контроллер, обрабатывающий события горячих и специальных клавиш."""
 
-    def __init__(self, ui=None):
+    def __init__(self):
         """
         Параметры
         ---------
         ui : объект виджета
             Ссылка на UI, в который будут выводиться сообщения.
         """
-        self.ui = ui
-        self._low_level_hook: llk.KeyboardHook | None = None
+        self.llk_hook: llk.KeyboardHook | None = None
+        self.hw = HotkeysWin()
 
-    def on_hotkey(self, hk_id: int, mods: int, vk: int):
+    @log_exceptions
+    def register_global_hotkeys(self):
+        hotkeys_win_ctrl = {ord("3"), ord("4"), ord("5"), ord("9")}
+        self.hw.register_global_hotkeys(hotkeys_win_ctrl, "control")
+
+    @log_exceptions
+    def set_single_hotkeys(self):
+        hotkeys_llk: dict[int:Callable] = {
+            llk.VK_CAPITAL: self.on_caps,
+            llk.VK_SCROLL: self.on_scroll,
+        }
+        self.llk_hook = llk.KeyboardHook(hotkeys_llk)
+        self.llk_hook.install()
+
+    @log_exceptions
+    def on_hotkey(self, hk_id: int, vk: int, mods: int):
         """
-        Обработчик глобальной горячей клавиши WM_HOTKEY.
+        Обработчик нажатий системных горячих клавиш.
 
         Параметры
         ---------
@@ -61,54 +59,32 @@ class Controller:
         mods : int
             Маска модификаторов (Alt, Ctrl, Shift, Win).
         """
-
         # Добавляем сообщение в UI
         print(f"WM_HOTKEY id={hk_id} vk=0x{vk:X} mods=0x{mods:X}")
 
-    def on_caps(self):
-        """Вызывается при нажатии CapsLock."""
-        try:
-            llk.change_keyboard_case()
-        except Exception as e:
-            logger.error(C.TEXT_ERROR_CHANGE_KEYBOARD.format(e=e))
+    @staticmethod
+    @log_exceptions(C.TEXT_ERROR_CHANGE_KEYBOARD)
+    def on_caps() -> bool:
+        """
+        Вызывается при нажатии CapsLock.
 
+        :return: True - Дальнейшую обработку подавить. False - обработку продолжить.
+        """
+        llk.change_keyboard_case()
         return True
 
-    def on_scroll(self):
-        """Вызывается при нажатии ScrollLock."""
-        self.ui.start_dialogue()
+    @staticmethod
+    def on_scroll() -> bool:
+        """Вызывается при нажатии ScrollLock.
 
-    def register_global_hotkeys(self) -> None:
-        """Регистрирует глобальные горячие клавиши и фильтр нативных событий."""
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_3)
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_4)
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_5)
-        register_hotkey(HK_MAIN, MOD_CONTROL | MOD_NOREPEAT, VK_9)
+        :return: True - Дальнейшую обработку подавить. False - обработку продолжить.
+        """
 
-    def set_single_hotkeys(self) -> None:
-        """Устанавливает низкоуровневый перехватчик CapsLock/ScrollLock."""
-
-        hook = llk.KeyboardHook(
-            {
-                llk.VK_CAPITAL: self.on_caps,
-                llk.VK_SCROLL: self.on_scroll,
-            }
-        )
-        hook.install()
-        self._low_level_hook = hook
+        signals_bus.start_dialog.emit()
+        return True
 
     def press_ctrl(self, vk: int) -> None:
         llk.press_ctrl(vk)
 
-    def cleanup(self) -> None:
-        """Освобождает ресурсы перед завершением приложения"""
-        try:
-            unregister_hotkey(HK_MAIN)
-        except Exception as e:
-            logger.warning(C.TEXT_ERROR_UNREGISTER_HOTKEY.format(e=e))
-            hook = self._low_level_hook
-            if hook is not None:
-                try:
-                    hook.uninstall()
-                except Exception as e:
-                    logger.error(C.TEXT_ERROR_UNLOAD_HOOK.format(e=e))
+    def cleanup(self):
+        self.hw.cleanup()

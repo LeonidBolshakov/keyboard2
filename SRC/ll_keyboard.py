@@ -38,6 +38,14 @@ WM_KEYDOWN, WM_SYS_KEYDOWN = 0x0100, 0x0104  # Идентификатор соо
 WM_KEYUP = 0x0100, 0x0101
 WM_SYS_KEY_DOWN, WM_SYS_KEY_UP = 0x0104, 0x0105
 
+HC_ACTION = 0
+LLK_HF_INJECTED = 0x10  # Нажатие сформировано не клавиатурой (программно)
+LLK_HF_LOWER_IL_INJECTED = 0x02  # Low-Level Keyboard Hook Flags
+
+_DOWN = {WM_KEYDOWN, WM_SYS_KEY_DOWN}
+_UP = {WM_KEYUP, WM_SYS_KEY_UP}
+_KEY = _DOWN | _UP
+
 # Флаг для события клавиатуры:
 KEY_EVENT_F_KEYUP = 0x0002  # означает "отпускание клавиши"
 
@@ -130,13 +138,7 @@ class KeyboardHook:
         self.handlers = handlers
         self.hook: HHOOK | None = None
         self._proc = LowLevelKeyboardProc(self._callback)
-        # self._proc - объект, который:
-
-        # хранит ссылку на метод _callback,
-        # имеет «C-совместимую» сигнатуру (L_RESULT CALLBACK(int, WPARAM, LPARAM)),
-        # может быть передан в WinAPI как указатель на функцию.
-        #
-        # То есть self._proc = «C-указатель на Python-функцию»
+        self._swallowed = set()  # vkCodes с подавленным KEYDOWN → подавлять и KEYUP
 
     def install(self) -> None:
         """Устанавливает низкоуровневый хук"""
@@ -156,19 +158,58 @@ class KeyboardHook:
     def _callback(
         self, nCode: int, wParam: wintypes.WPARAM, lParam: wintypes.LPARAM
     ) -> L_RESULT:
-        """Внутренний обратный вызов. Запускает обработчик по vkCode, если он задан."""
-        if nCode == 0 and wParam in (
-            WM_KEYDOWN,
-            WM_KEYUP,
-            WM_SYS_KEY_DOWN,
-            WM_SYS_KEY_UP,
-        ):
-            ks = ctypes.cast(lParam, ctypes.POINTER(KbdLlHookStruct)).contents
-            handler = self.handlers.get(ks.vkCode)
-            if handler is not None:
-                handler()  # вызываем свой код
-                return 1  # полностью съедаем событие (и down, и up)
-        return CallNextHookEx(None, nCode, wParam, lParam)
+        """
+        Функция, которую Windows вызывает при срабатывании хука.
+
+        :param nCode: Тип события (например, HC_ACTION).
+        :param wParam: Тип сообщения (WM_KEYDOWN, WM_KEYUP)
+        :param lParam: Указатель на структуру с данными о нажатой клавише
+
+        :return:1 → событие «проглочено» (не передавать дальше, не отдавать приложениям).
+                0 или результат CallNextHookEx → событие идёт дальше
+                по цепочке и в конечном итоге дойдёт до приложений.
+        """
+        call_next = user32.CallNextHookEx
+
+        if (
+            nCode < HC_ACTION or wParam not in _KEY
+        ):  # событие не связано с клавишами или неактуально
+            return call_next(None, nCode, wParam, lParam)
+
+        kbd = ctypes.cast(lParam, ctypes.POINTER(KbdLlHookStruct)).contents
+
+        # игнорируем синтетические события
+        if kbd.flags & (
+            LLK_HF_INJECTED | LLK_HF_LOWER_IL_INJECTED
+        ):  # Игнорирование событий, сформированных не клавиатурой
+            return call_next(None, nCode, wParam, lParam)
+
+        vk = kbd.vkCode  # Код клавиши
+
+        if wParam in _DOWN:  # Клавиша нажата
+            handler = self.handlers.get(
+                vk
+            )  # Обработчик для клавиши. Взят из словаря параметров
+            if not handler:  # Клавиши в словаре нет (Только при ошибке в программе).
+                return call_next(None, nCode, wParam, lParam)
+            try:
+                rv = handler()  # Наш обработчик. Может вернуть True/False
+            except Exception as e:
+                print("handler(%s) провален", vk)
+                return call_next(None, nCode, wParam, lParam)
+
+            # подавляем, если обработчик вернул True; иначе пропускаем
+            if rv:
+                self._swallowed.add(vk)
+                return 1
+            return call_next(None, nCode, wParam, lParam)
+
+        # KEYUP: подавляем только если подавляли соответствующий DOWN
+        if vk in self._swallowed:
+            self._swallowed.discard(vk)
+            return 1
+
+        return call_next(None, nCode, wParam, lParam)
 
 
 def press_ctrl(key_code: int, delay: float = 0.05):
@@ -219,62 +260,3 @@ def change_keyboard_case() -> None:
     user32.keybd_event(VK_SHIFT, 0, 0, 0)  # 2. Shift down
     user32.keybd_event(VK_SHIFT, 0, KEY_EVENT_F_KEYUP, 0)  # 3. Shift up
     user32.keybd_event(VK_ALT, 0, KEY_EVENT_F_KEYUP, 0)  # 4. Alt up
-
-
-# ----- базовые типы -----
-U_LONG_PTR = ctypes.c_uint64 if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_uint32
-
-# ----- константы -----
-INPUT_KEYBOARD = 1
-KEY_EVENT_F_KEYUP = 0x0002
-KEY_EVENT_F_UNICODE = 0x0004
-
-VK_SHIFT, VK_CONTROL, VK_MENU = 0x10, 0x11, 0x12
-
-
-# ----- структуры -----
-class KeyboardInput(ctypes.Structure):
-    _fields_ = [
-        ("wVk", wintypes.WORD),
-        ("wScan", wintypes.WORD),
-        ("dwFlags", wintypes.DWORD),
-        ("time", wintypes.DWORD),
-        ("dwExtraInfo", U_LONG_PTR),
-    ]
-
-
-class _InputUnion(ctypes.Union):
-    _fields_ = [("ki", KeyboardInput)]
-
-
-class INPUT(ctypes.Structure):
-    _fields_ = [("type", wintypes.DWORD), ("u", _InputUnion)]
-
-
-def make_key(vk, up=False):
-    return INPUT(
-        type=INPUT_KEYBOARD,
-        u=_InputUnion(
-            ki=KeyboardInput(
-                wVk=vk,
-                wScan=0,
-                dwFlags=(KEY_EVENT_F_KEYUP if up else 0),
-                time=0,
-                dwExtraInfo=0,
-            )
-        ),
-    )
-
-
-def send_text(text: str):
-    seq = []
-    for ch in text:
-        code = user32.VkKeyScanW(ord(ch))
-        vk = code & 0xFF
-
-        # символ
-        seq.append(make_key(vk, False))
-        seq.append(make_key(vk, True))
-
-    arr = (INPUT * len(seq))(*seq)
-    user32.SendInput(len(arr), ctypes.byref(arr), ctypes.sizeof(INPUT))
