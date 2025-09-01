@@ -21,7 +21,7 @@ from SRC.constants import C
 class Controller:
     """Контроллер, обрабатывающий события горячих и специальных клавиш."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """
         Параметры
         ---------
@@ -37,8 +37,8 @@ class Controller:
         self.hw.register_global_hotkeys(hotkeys_win_ctrl, "control")
 
     @log_exceptions
-    def set_single_hotkeys(self):
-        hotkeys_llk: dict[int:Callable] = {
+    def set_single_hotkeys(self) -> None:
+        hotkeys_llk: dict[int, Callable] = {
             llk.VK_CAPITAL: self.on_caps,
             llk.VK_SCROLL: self.on_scroll,
         }

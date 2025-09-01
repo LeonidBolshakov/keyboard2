@@ -1,6 +1,5 @@
 """Класс организации диалога с пользователем"""
 
-from typing import Callable
 from enum import IntEnum
 import logging
 
@@ -8,7 +7,8 @@ logger = logging.getLogger(__name__)
 
 from PyQt6 import uic
 from PyQt6.QtGui import QCloseEvent, QKeySequence, QShortcut
-from PyQt6.QtCore import Qt, QTimer, QCoreApplication
+from PyQt6.QtCore import Qt, QTimer, QCoreApplication, pyqtBoundSignal
+
 from PyQt6.QtWidgets import QMainWindow, QDialogButtonBox, QPushButton
 
 from SRC.signals import signals_bus
@@ -282,7 +282,7 @@ class MainWindow(QMainWindow):
         self,
         attr_name: str,
         key: str | QKeySequence,
-        slot: Callable,
+        slot: pyqtBoundSignal,
     ) -> QShortcut:
         """
         Назначение горячей клавиши главного (единственного) окна программы

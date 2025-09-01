@@ -122,7 +122,8 @@ class StartApp:
         Возвращает объект приложения, отключает авто‑выход при закрытии всех
         окон, подключает обработчик завершения.
         """
-        app = QtWidgets.QApplication.instance() or QtWidgets.QApplication(sys.argv)
+
+        app = QtWidgets.QApplication(sys.argv)  # type: ignore
         app.setQuitOnLastWindowClosed(
             False
         )  # Оставляем app в памяти даже при закрытии всех окон

@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 import logging
 
-import pygetwindow as gw
+import pygetwindow as gw  # type: ignore
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QPushButton, QMessageBox, QApplication
@@ -75,7 +75,9 @@ def get_exe_directory() -> Path:
 
 def put_text_to_clipboard(text: str) -> None:
     """Записываем текст в буфер обмена"""
-    QApplication.clipboard().setText(text)
+    clipboard = QApplication.clipboard()
+    if clipboard:
+        clipboard.setText(text)
 
 
 def get_selection() -> str:
@@ -107,7 +109,9 @@ def get_it_once(time_delay: float) -> str | None:
     :return: (str) Текст, считанный из буфера обмена
     """
 
-    QApplication.clipboard().clear()
+    clipboard = QApplication.clipboard()
+    if clipboard:
+        clipboard.clear()
     VK_C = 0x43  # "C"
     controller.press_ctrl(VK_C)
     return get_clipboard_text()
@@ -118,7 +122,8 @@ def get_clipboard_text() -> str:
     Возвращаем текст буфера обмена
     :return: (str).
     """
-    return QApplication.clipboard().text()
+    clipboard = QApplication.clipboard()
+    return clipboard.text() if clipboard else ""
 
 
 # noinspection PyProtectedMember

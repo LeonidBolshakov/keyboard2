@@ -10,13 +10,16 @@ from SRC.constants import C
 class CustomTextEdit(QTextEdit):
     """Расширение класса QTextEdit для обработки нажатия специальных клавиш"""
 
-    def keyPressEvent(self, event: QKeyEvent) -> None:
+    def keyPressEvent(self, event: QKeyEvent | None) -> None:
         """
         Переопределение метода. Перехватываем ввод с клавиатуры.
         Обрабатываем специальные клавиши
         :param event: (QKeyEvent). Событие нажатия клавиши
         :return: None
         """
+        if event is None:
+            return
+
         if not self.run_special_key(event):  # Обрабатываем специальные клавиши
             super().keyPressEvent(
                 event

@@ -48,7 +48,6 @@ class Tray(QtWidgets.QSystemTrayIcon):
         Дополнительные элементы меню вида {"Название": функция}.
         """
         super().__init__(app)  # базовый конструктор
-
         self._create_icon(app)
         menu = self._create_menu(on_quit, actions)
         self.setContextMenu(menu)
@@ -72,13 +71,16 @@ class Tray(QtWidgets.QSystemTrayIcon):
         for text, handler in actions.items():
             act = menu.addAction(text)
             try:
+                if not act:
+                    continue
                 act.triggered.connect(handler)
             except Exception as e:
                 logger.error(C.TEXT_ERROR_CONNECT_SIGNAL)
 
         quit_action = menu.addAction("Выход")
         try:
-            quit_action.triggered.connect(on_quit)
+            if quit_action:
+                quit_action.triggered.connect(on_quit)
         except Exception as e:
             logger.error(C.TEXT_ERROR_CONNECT_SIGNAL)
         finally:

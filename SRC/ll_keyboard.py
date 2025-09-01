@@ -28,6 +28,7 @@
 
 from __future__ import annotations
 
+from typing import Type
 import ctypes
 import time
 from ctypes import wintypes
@@ -61,12 +62,12 @@ kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # Общесисте�
 
 # В стандартных типах ctypes.wintypes нет U_LONG_PTR и L_RESULT,
 # поэтому определяем их вручную с учётом разрядности.
-if ctypes.sizeof(ctypes.c_void_p) == 8:
-    U_LONG_PTR = ctypes.c_ulonglong
-    L_RESULT = ctypes.c_longlong
-else:
-    U_LONG_PTR = ctypes.c_ulong
-    L_RESULT = ctypes.c_long
+U_LONG_PTR: Type = (
+    ctypes.c_ulonglong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_ulong
+)
+L_RESULT: Type = (
+    ctypes.c_longlong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_long
+)
 
 HHOOK = ctypes.c_void_p  # Указатель на тип void* из C
 
@@ -138,7 +139,9 @@ class KeyboardHook:
         self.handlers = handlers
         self.hook: HHOOK | None = None
         self._proc = LowLevelKeyboardProc(self._callback)
-        self._swallowed = set()  # vkCodes с подавленным KEYDOWN → подавлять и KEYUP
+        self._swallowed: set[int] = (
+            set()
+        )  # vkCodes с подавленным KEYDOWN → подавлять и KEYUP
 
     def install(self) -> None:
         """Устанавливает низкоуровневый хук"""
@@ -157,7 +160,7 @@ class KeyboardHook:
 
     def _callback(
         self, nCode: int, wParam: wintypes.WPARAM, lParam: wintypes.LPARAM
-    ) -> L_RESULT:
+    ) -> int:
         """
         Функция, которую Windows вызывает при срабатывании хука.
 
