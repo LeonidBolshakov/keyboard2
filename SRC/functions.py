@@ -87,14 +87,14 @@ def get_selection() -> str:
 
     :return: (str) - Выделенный текст или '' (пустая строка).
     """
-    time_delay = C.TIME_DELAY_CTRL_C
+    time_delay = C.TIME_DELAY_CTRL_C_V
     for _ in range(C.MAX_CLIPBOARD_READS):
         text_from_clipboard = get_it_once(time_delay)
         if text_from_clipboard:
             return text_from_clipboard
         logger.info(C.LOGGER_TEXT_NO_IN_CLIPBOARD.format(time_delay=time_delay))
         # Подготовка к следующей итерации
-        time_delay += C.TIME_DELAY_CTRL_C
+        time_delay += C.TIME_DELAY_CTRL_C_V
 
     logger.info(f"{C.LOGGER_TEXT_ERROR_READ_CLIPBOARD}")
     return ""
@@ -113,7 +113,7 @@ def get_it_once(time_delay: float) -> str | None:
     if clipboard:
         clipboard.clear()
     VK_C = 0x43  # "C"
-    controller.press_ctrl(VK_C)
+    controller.press_ctrl_and(VK_C)
     return get_clipboard_text()
 
 
@@ -140,4 +140,4 @@ def get_window() -> gw._pygetwindow_win.Win32Window | None:
 def replace_selected_text():
     """Заменяем выделенный текст"""
     VK_V = 0x56  # v
-    ll_keyboard.press_ctrl(VK_V, C.TIME_DELAY_CTRL_V)  # Эмуляция Ctrl+v
+    ll_keyboard.press_ctrl_and(VK_V, C.TIME_DELAY_CTRL_C_V)  # Эмуляция Ctrl+v

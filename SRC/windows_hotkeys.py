@@ -1,5 +1,5 @@
 """
-Модуль hotkey_win.py
+Модуль windows_hotkeys.py
 
 Назначение
 ---------
@@ -169,10 +169,11 @@ class HotkeyFilter(QtCore.QAbstractNativeEventFilter):
         Возврат
         -------
         tuple[bool, int]
-            `(True, 0)`, если событие не должно идти дальше, иначе `(False, 0)`.
+            `(True, voidptr(0))`, если событие не должно идти дальше, иначе `(False, voidptr(0))`.
         """
         if message is None:
             return False, voidptr(0)
+
         msg = wintypes.MSG.from_address(int(message))  # type: ignore[arg-type]
         if msg.message != self.WM_HOTKEY:
             return False, voidptr(0)

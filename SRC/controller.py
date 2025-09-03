@@ -11,11 +11,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from SRC.hotkey_win import HotkeysWin
+from SRC.windows_hotkeys import HotkeysWin
+from SRC.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers
 from SRC.try_log import log_exceptions
-from SRC.signals import signals_bus
 import SRC.ll_keyboard as llk
-from SRC.constants import C
+from constants import C
 
 
 class Controller:
@@ -30,19 +30,26 @@ class Controller:
         """
         self.llk_hook: llk.KeyboardHook | None = None
         self.hw = HotkeysWin()
+        self.hotkeys_handlers = HotkeysHandlers()
+        self.keys = llk.Keys()
 
     @log_exceptions
     def register_global_hotkeys(self):
-        hotkeys_win_ctrl = {ord("3"), ord("4"), ord("5"), ord("9")}
+        hotkeys_win_ctrl = {
+            self.keys.KEY_3,
+            self.keys.KEY_4,
+            self.keys.KEY_5,
+            self.keys.KEY_9,
+        }
         self.hw.register_global_hotkeys(hotkeys_win_ctrl, "control")
 
     @log_exceptions
     def set_single_hotkeys(self) -> None:
         hotkeys_llk: dict[int, Callable] = {
-            llk.VK_CAPITAL: self.on_caps,
-            llk.VK_SCROLL: self.on_scroll,
+            self.keys.VK_CAPITAL: self.hotkeys_handlers.on_caps,
+            self.keys.VK_SCROLL: self.hotkeys_handlers.on_scroll,
         }
-        self.llk_hook = llk.KeyboardHook(hotkeys_llk)
+        self.llk_hook = llk.LowLevelKeyboardHook(hotkeys_llk)
         self.llk_hook.install()
 
     @log_exceptions
@@ -60,31 +67,18 @@ class Controller:
             Маска модификаторов (Alt, Ctrl, Shift, Win).
         """
         # Добавляем сообщение в UI
-        print(f"WM_HOTKEY id={hk_id} vk=0x{vk:X} mods=0x{mods:X}")
+        match vk:
+            case self.keys.KEY_3:
+                self.hotkeys_handlers.send_mail()
+            case self.keys.KEY_4:
+                self.hotkeys_handlers.send_telephone()
+            case self.keys.KEY_5:
+                self.hotkeys_handlers.run_calculator()
+            case self.keys.KEY_9:
+                self.hotkeys_handlers.send_signature()
 
-    @staticmethod
-    @log_exceptions(C.TEXT_ERROR_CHANGE_KEYBOARD)
-    def on_caps() -> bool:
-        """
-        Вызывается при нажатии CapsLock.
-
-        :return: True - Дальнейшую обработку подавить. False - обработку продолжить.
-        """
-        llk.change_keyboard_case()
-        return True
-
-    @staticmethod
-    def on_scroll() -> bool:
-        """Вызывается при нажатии ScrollLock.
-
-        :return: True - Дальнейшую обработку подавить. False - обработку продолжить.
-        """
-
-        signals_bus.start_dialog.emit()
-        return True
-
-    def press_ctrl(self, vk: int) -> None:
-        llk.press_ctrl(vk)
+    def press_ctrl_and(self, vk: int, delay_sec: float = C.TIME_DELAY_CTRL_C_V) -> None:
+        llk.press_ctrl_and(vk, delay_sec)
 
     def cleanup(self):
         self.hw.cleanup()

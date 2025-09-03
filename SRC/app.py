@@ -38,7 +38,7 @@ import SRC.functions as f
 from SRC.system_tray import Tray
 from SRC.single_instance import SingleInstance
 from SRC.main_window import MainWindow
-from SRC.hotkey_win import HotkeyFilter
+from SRC.windows_hotkeys import HotkeyFilter
 from SRC.controller import Controller
 from SRC.try_log import log_exceptions
 from SRC.constants import C

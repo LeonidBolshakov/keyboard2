@@ -1,51 +1,101 @@
-"""
-Модуль ll_keyboard.py
+# -*- coding: utf-8 -*-
+"""Утилита для работы с низкоуровневым хуком клавиатуры в Windows.
 
-Назначение
----------
-Низкоуровневый перехватчик клавиатуры для клавиш **CapsLock** и **ScrollLock**.
-Эти клавиши нельзя зарегистрировать как системные горячие клавиши - они идут без модификатора.
-Реализует установку и снятие перехватчика через функции Windows и вызов
-пользовательских обработчиков при нажатии.
+Класс LowLevelKeyboardHook позволяет регистрировать обработчики для конкретных
+виртуальных кодов клавиш (VK). Обработчики вызываются на событие WM_KEYDOWN.
 
-Состав
-------
-- Константы: идентификаторы хука и сообщения клавиатуры.
-- Описание структуры, описывающей событие клавиши.
-- Обёртки над функциями библиотеки user32: установка/снятие хука и вызов
-  следующего в цепочке.
-- Класс `KeyboardHook` с методами `install()` и `uninstall()` и внутренним
-  обработчиком `_callback`.
-
-Примечания по использованию
----------------------------
-- Хук работает в контексте потока графического интерфейса. Вызывайте `install()`
-  после создания `QApplication` и храните объект `KeyboardHook`, чтобы его не
-  уничтожила сборка мусора.
-- Обязательно вызывайте `uninstall()` перед завершением приложения, либо
-  подключите его к сигналу `aboutToQuit`.
+Файл импортируется и на не-Windows платформах: структура и типы объявлены так,
+чтобы можно было тестировать логику диспетчеризации без Windows. Установка
+хука доступна только в Windows.
 """
 
 from __future__ import annotations
 
-from typing import Type
-import ctypes
+from typing import Callable, Dict, Optional
 import time
+from dataclasses import dataclass
+import ctypes
 from ctypes import wintypes
-from typing import Callable
+import sys
 
-WH_KEYBOARD_LL = 13  # Идентификатор низкоуровневого клавиатурного хука
-WM_KEYDOWN, WM_SYS_KEYDOWN = 0x0100, 0x0104  # Идентификатор сообщения о нажатии клавиши
-WM_KEYUP = 0x0100, 0x0101
-WM_SYS_KEY_DOWN, WM_SYS_KEY_UP = 0x0104, 0x0105
 
+@dataclass
+class Keys:
+    KEY_3 = 0x33
+    KEY_4 = 0x34
+    KEY_5 = 0x35
+    KEY_9 = 0x39
+    VK_CAPITAL = 0x14
+    VK_SCROLL = 0x91
+    VK_SHIFT = 0x10
+    VK_CONTROL = 0x11
+    VK_ALT = 0x12
+    VK_RETURN = 0x0D
+
+
+# ------------------------ Константы Windows ------------------------
+WH_KEYBOARD_LL = 13
 HC_ACTION = 0
-LLK_HF_INJECTED = 0x10  # Нажатие сформировано не клавиатурой (программно)
-LLK_HF_LOWER_IL_INJECTED = 0x02  # Low-Level Keyboard Hook Flags
 
-_DOWN = {WM_KEYDOWN, WM_SYS_KEY_DOWN}
-_UP = {WM_KEYUP, WM_SYS_KEY_UP}
-_KEY = _DOWN | _UP
+WM_KEYDOWN = 0x0100
+WM_KEYUP = 0x0101
+WM_SYSKEYDOWN = 0x0104
+WM_SYSKEYUP = 0x0105
+
+_KEY_DOWN = {WM_KEYDOWN, WM_SYSKEYDOWN}
+_KEY_UP = {WM_KEYUP, WM_SYSKEYUP}
+_KEY = _KEY_DOWN | _KEY_UP
+
+# Флаги структуры KBDLLHOOKSTRUCT.flags
+LLKHF_EXTENDED = 0x01
+LLKHF_LOWER_IL_INJECTED = 0x02
+LLKHF_INJECTED = 0x10
+LLKHF_ALTDOWN = 0x20
+LLKHF_UP = 0x80
+
+# ------------------------ Fallback-типы ----------------------------
+# Некоторые IDE-стабы (wintypes.pyi) не объявляют ULONG_PTR/HHOOK.
+# Делаем безопасные подстановки по размеру указателя.
+try:
+    ULONG_PTR = wintypes.ULONG_PTR  # type: ignore[attr-defined]
+except AttributeError:
+    ULONG_PTR = (
+        ctypes.c_ulonglong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_ulong
+    )  # noqa: N816
+
+HHOOK = getattr(wintypes, "HHOOK", wintypes.HANDLE)
+
+# LRESULT может отсутствовать в wintypes.pyi IDE-ставах
+try:
+    LRESULT = wintypes.LRESULT  # type: ignore[attr-defined]
+except AttributeError:
+    # LONG_PTR по размеру указателя
+    LRESULT = (
+        ctypes.c_longlong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_long
+    )  # noqa: N816
+
+
+# ------------------------ Структуры WinAPI -------------------------
+# Определение C-структуры, используемой WinAPI.ctypes.wintypes доступен
+# на всех платформах, поэтому структуру можно объявить даже на не-Windows.
+# ВАЖНО: на x64 обязательно использовать ULONG_PTR для dwExtraInfo (или эквивалент).
+class KBDLLHOOKSTRUCT(ctypes.Structure):
+    _fields_ = [
+        ("vkCode", wintypes.DWORD),
+        ("scanCode", wintypes.DWORD),
+        ("flags", wintypes.DWORD),
+        ("time", wintypes.DWORD),
+        ("dwExtraInfo", ULONG_PTR),
+    ]
+
+
+# Правильная сигнатура колбэка: LRESULT, WPARAM, LPARAM
+LowLevelKeyboardProc = ctypes.WINFUNCTYPE(
+    LRESULT,
+    ctypes.c_int,  # nCode
+    wintypes.WPARAM,  # wParam
+    wintypes.LPARAM,  # lParam (указатель на KBDLLHOOKSTRUCT)
+)
 
 # Флаг для события клавиатуры:
 KEY_EVENT_F_KEYUP = 0x0002  # означает "отпускание клавиши"
@@ -60,162 +110,105 @@ VK_SCROLL = 0x91  # коды CapsLock и ScrollLock
 user32 = ctypes.WinDLL("user32", use_last_error=True)  # Функции работы с окнами/вводом
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # Общесистемные функции
 
-# В стандартных типах ctypes.wintypes нет U_LONG_PTR и L_RESULT,
-# поэтому определяем их вручную с учётом разрядности.
-U_LONG_PTR: Type = (
-    ctypes.c_ulonglong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_ulong
-)
-L_RESULT: Type = (
-    ctypes.c_longlong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_long
-)
 
-HHOOK = ctypes.c_void_p  # Указатель на тип void* из C
+class LowLevelKeyboardHook:
+    """Диспетчер низкоуровневых событий клавиатуры для зарегистрированных обработчиков
 
-
-class KbdLlHookStruct(ctypes.Structure):
-    """Структура Windows API, описывающая событие низкоуровневого хука."""
-
-    _fields_ = [
-        ("vkCode", wintypes.DWORD),  # код клавиши
-        ("scanCode", wintypes.DWORD),  # скан-код (код сканирования клавиши)
-        ("flags", wintypes.DWORD),  # флаги события
-        ("time", wintypes.DWORD),  # время события
-        ("dwExtraInfo", U_LONG_PTR),  # дополнительная информация
-    ]
-
-
-LowLevelKeyboardProc = ctypes.WINFUNCTYPE(  # создаёт класс-обёртку для обратных вызовов (stdcall),
-    # используется для регистрации Python-функции как C-указателя
-    L_RESULT,
-    ctypes.c_int,
-    wintypes.WPARAM,
-    wintypes.LPARAM,
-)
-
-SetWindowsHookExW = (
-    user32.SetWindowsHookExW
-)  # установка хука (низкоуровневого обработчика)
-SetWindowsHookExW.argtypes = [
-    wintypes.INT,  # идентификатор хука
-    LowLevelKeyboardProc,  # функция обратного вызова
-    wintypes.HINSTANCE,  # дескриптор модуля
-    wintypes.DWORD,  # идентификатор потока (0 = глобально)
-]
-SetWindowsHookExW.restype = HHOOK  # возвращает дескриптор хука
-
-UnhookWindowsHookEx = user32.UnhookWindowsHookEx  # снятие установленного хука
-UnhookWindowsHookEx.argtypes = [HHOOK]  # принимает дескриптор хука
-UnhookWindowsHookEx.restype = wintypes.BOOL  # возвращает успех/неудачу
-
-CallNextHookEx = user32.CallNextHookEx  # передача события следующему хуку в цепочке
-CallNextHookEx.argtypes = [
-    HHOOK,  # дескриптор текущего хука (обычно None)
-    ctypes.c_int,  # код хука
-    wintypes.WPARAM,  # параметр wParam
-    wintypes.LPARAM,  # параметр lParam
-]
-CallNextHookEx.restype = L_RESULT  # возвращает результат обработки
-
-
-class KeyboardHook:
-    """
-    Класс-обёртка для регистрации низкоуровневого перехватчика клавиатуры.
-
-    Пользователь создаёт объект и вызывает install(), после чего Windows
-    сама вызывает _callback на каждое клавиатурное событие. Внутри _callback
-    по коду клавиши сама запускает соответствующий пользовательский обработчик.
-
-    Параметры конструктора
-    ----------------------
-    handlers : dict[int, Callable[[], None]]
-        Сопоставление {VK-код: обработчик}.
-        Пример: {VK_CAPITAL: on_caps, VK_SCROLL: on_scroll}.
-
-    Замечание: объект нужно хранить в переменной/атрибуте, иначе сборщик мусора
-    уничтожит его и хук перестанет работать.
+    handlers: dict[int, Callable[[], None]]
+        Ключ — виртуальный код клавиши (VK_*), значение — функция без аргументов.
     """
 
-    def __init__(self, handlers: dict[int, Callable[[], None]]):
+    def __init__(self, handlers: Dict[int, Callable[[], None]]):
         self.handlers = handlers
-        self.hook: HHOOK | None = None
-        self._proc = LowLevelKeyboardProc(self._callback)
-        self._swallowed: set[int] = (
-            set()
-        )  # vkCodes с подавленным KEYDOWN → подавлять и KEYUP
+        self._hook_id: Optional[int] = None
+        self._callback = None
+        self._pressed = set()
 
+        if sys.platform.startswith("win"):
+            # Инициализируем WinAPI.
+            # Создаём C-совместимый колбэк
+            self._callback = LowLevelKeyboardProc(self._low_level_callback)
+
+            # Прототипы функций
+            user32.SetWindowsHookExW.argtypes = [
+                ctypes.c_int,  # idHook
+                LowLevelKeyboardProc,  # lpfn
+                wintypes.HINSTANCE,  # hMod
+                wintypes.DWORD,  # dwThreadId
+            ]
+            user32.SetWindowsHookExW.restype = HHOOK
+
+            user32.CallNextHookEx.argtypes = [
+                HHOOK,
+                ctypes.c_int,
+                wintypes.WPARAM,
+                wintypes.LPARAM,
+            ]
+            user32.CallNextHookEx.restype = LRESULT
+
+            user32.UnhookWindowsHookEx.argtypes = [HHOOK]
+            user32.UnhookWindowsHookEx.restype = wintypes.BOOL
+        else:
+            raise OSError("Программа работает только под управлением Windows")
+
+    # ------------------------------------------------------------------
     def install(self) -> None:
-        """Устанавливает низкоуровневый хук"""
-        self.hook = SetWindowsHookExW(WH_KEYBOARD_LL, self._proc, 0, 0)
-        if not self.hook:
-            err = ctypes.get_last_error()
-            buf = ctypes.create_unicode_buffer(512)
-            kernel32.FormatMessageW(0x00001000, None, err, 0, buf, len(buf), None)
-            raise OSError(f"Ошибка установки хука: код={err}: {buf.value.strip()}")
+        """Установить низкоуровневый хук клавиатуры.
 
+        Для WH_KEYBOARD_LL загружать DLL не нужно: hMod=0, dwThreadId=0.
+        """
+        if not sys.platform.startswith("win"):
+            raise RuntimeError("LowLevelKeyboardHook доступен только в Windows")
+
+        self._hook_id = user32.SetWindowsHookExW(WH_KEYBOARD_LL, self._callback, 0, 0)
+        if not self._hook_id:
+            raise ctypes.WinError()
+
+    # ------------------------------------------------------------------
     def uninstall(self) -> None:
-        """Снимает установленный хук, если он есть."""
-        if self.hook:
-            UnhookWindowsHookEx(self.hook)
-            self.hook = None
+        """Снять установленный хук."""
+        if self._hook_id:
+            user32.UnhookWindowsHookEx(self._hook_id)
+            self._hook_id = None
 
-    def _callback(
-        self, nCode: int, wParam: wintypes.WPARAM, lParam: wintypes.LPARAM
-    ) -> int:
+    # ------------------------------------------------------------------
+    def _low_level_callback(self, nCode: int, wParam: int, lParam: int) -> int:
+        """Внутренний колбэк хука.
+
+        При WM_KEYDOWN получает vkCode и, если он есть в handlers, вызывает обработчик.
+        Передаёт событие дальше по цепочке через CallNextHookEx если вызванный обработчик вернул False
         """
-        Функция, которую Windows вызывает при срабатывании хука.
+        if nCode != HC_ACTION:
+            return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
-        :param nCode: Тип события (например, HC_ACTION).
-        :param wParam: Тип сообщения (WM_KEYDOWN, WM_KEYUP)
-        :param lParam: Указатель на структуру с данными о нажатой клавише
+        if wParam not in _KEY:
+            return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
-        :return:1 → событие «проглочено» (не передавать дальше, не отдавать приложениям).
-                0 или результат CallNextHookEx → событие идёт дальше
-                по цепочке и в конечном итоге дойдёт до приложений.
-        """
-        call_next = user32.CallNextHookEx
+        kb = ctypes.cast(lParam, ctypes.POINTER(KBDLLHOOKSTRUCT)).contents
+        is_keyup = (wParam in _KEY_UP) or bool(kb.flags & LLKHF_UP)
 
-        if (
-            nCode < HC_ACTION or wParam not in _KEY
-        ):  # событие не связано с клавишами или неактуально
-            return call_next(None, nCode, wParam, lParam)
+        if is_keyup:
+            # только освобождаем состояние, обработчик НЕ вызываем
+            self._pressed.discard(kb.vkCode)
+            return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
-        kbd = ctypes.cast(lParam, ctypes.POINTER(KbdLlHookStruct)).contents
+        # keydown: фиксируем и вызываем обработчик
+        self._pressed.add(kb.vkCode)
+        handler = self.handlers.get(kb.vkCode)
 
-        # игнорируем синтетические события
-        if kbd.flags & (
-            LLK_HF_INJECTED | LLK_HF_LOWER_IL_INJECTED
-        ):  # Игнорирование событий, сформированных не клавиатурой
-            return call_next(None, nCode, wParam, lParam)
-
-        vk = kbd.vkCode  # Код клавиши
-
-        if wParam in _DOWN:  # Клавиша нажата
-            handler = self.handlers.get(
-                vk
-            )  # Обработчик для клавиши. Взят из словаря параметров
-            if not handler:  # Клавиши в словаре нет (Только при ошибке в программе).
-                return call_next(None, nCode, wParam, lParam)
+        block = False
+        if handler:
             try:
-                rv = handler()  # Наш обработчик. Может вернуть True/False
-            except Exception as e:
-                print("handler(%s) провален", vk)
-                return call_next(None, nCode, wParam, lParam)
+                block = bool(handler())  # старая сигнатура без аргументов
+            except Exception:
+                block = False
 
-            # подавляем, если обработчик вернул True; иначе пропускаем
-            if rv:
-                self._swallowed.add(vk)
-                return 1
-            return call_next(None, nCode, wParam, lParam)
-
-        # KEYUP: подавляем только если подавляли соответствующий DOWN
-        if vk in self._swallowed:
-            self._swallowed.discard(vk)
+        if block:
             return 1
+        return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
-        return call_next(None, nCode, wParam, lParam)
 
-
-def press_ctrl(key_code: int, delay: float = 0.05):
+def press_ctrl_and(key_code: int, delay: float = 0.05):
     """
     Эмулирует комбинацию Ctrl+<Key> через WinAPI (keybd_event).
 
@@ -248,18 +241,10 @@ def press_ctrl(key_code: int, delay: float = 0.05):
     user32.keybd_event(VK_CONTROL, 0, KEY_EVENT_F_KEYUP, 0)
 
 
-def change_keyboard_case() -> None:
-    """
-    Эмулирует комбинацию Ctrl+Shift через WinAPI (keybd_event).
-
-
-    Логика:
-        1. Нажать Alt (keydown).
-        2. Нажать Shift (keydown).
-        3. Отпустить Shift (keyup).
-        4. Отпустить Alt (keyup).
-    """
-    user32.keybd_event(VK_ALT, 0, 0, 0)  # 1. Alt down
-    user32.keybd_event(VK_SHIFT, 0, 0, 0)  # 2. Shift down
-    user32.keybd_event(VK_SHIFT, 0, KEY_EVENT_F_KEYUP, 0)  # 3. Shift up
-    user32.keybd_event(VK_ALT, 0, KEY_EVENT_F_KEYUP, 0)  # 4. Alt up
+__all__ = [
+    "LowLevelKeyboardHook",
+    "KBDLLHOOKSTRUCT",
+    "WM_KEYDOWN",
+    "WH_KEYBOARD_LL",
+    "LLKHF_UP",
+]

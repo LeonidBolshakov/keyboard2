@@ -39,7 +39,7 @@ class Variables:
         # Загружаем переменные окружения из файла .env (если он существует)
         load_dotenv()
 
-    def get_var(self, name: str, default: str) -> str:
+    def get_var(self, name: str, default: str = "") -> str:
         if not isinstance(name, str):
             logger.error(C.TEXT_ERROR_GET_VAR_1.format(name=name))
             raise TypeError(C.TEXT_ERROR_GET_VAR_1.format(name=name))

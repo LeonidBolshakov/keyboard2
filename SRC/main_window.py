@@ -162,7 +162,6 @@ class MainWindow(QMainWindow):
 
     def processing_clipboard(self) -> None:
         """Обрабатываем буфер обмена"""
-
         # 1. Получение выделения
         try:
             text = f.get_selection()

@@ -27,8 +27,8 @@ class _Const:
 
     # --- Ключи конфигурации / имена переменных окружения
     CONSOLE_LOG_LEVEL: str = "console_log_level"
-    FILE_LOG_LEVEL: str = "file_log_level_info"  # сохранён исходный ключ
-    FILE_LOG_PATH: str = "file_log_path"  # исправленный ключ
+    FILE_LOG_LEVEL: str = "file_log_level_info"  # Уровень логирования в файл
+    FILE_LOG_PATH: str = "file_log_path"  # путь файла логирования
 
     # --- Значения по умолчанию
     CONSOLE_LOG_LEVEL_DEF: str = "INFO"
@@ -89,8 +89,7 @@ class _Const:
 
     # --- Работа с буфером обмена
     MAX_CLIPBOARD_READS = 2  # максимально число считываний буфера обмена
-    TIME_DELAY_CTRL_C = 0.1  # Задержка, в секундах, после нажатия Ctrl+c
-    TIME_DELAY_CTRL_V = 0.1  # Задержка, в секундах, после нажатия Ctrl+v
+    TIME_DELAY_CTRL_C_V = 0.1  # Задержка, в секундах, после нажатия Ctrl+c
 
     # --- Пути программ
     UI_PATH_FROM_EXE = r"_internal\dialogue.ui"
@@ -114,7 +113,7 @@ class _Const:
         "Не предусмотренная программой команда закрытия диалога command={command}"
     )
     TEXT_ERROR_CHANGE_KEYBOARD = "Ошибка при изменении регистра клавиатуры"
-    TEXT_ERROR_CHANGE_TEXT = "Ошибка при преобразовании/выводе текста пользователя. {e}"
+    TEXT_ERROR_CHANGE_TEXT = "Ошибка при работе с текстом пользователя. {e}"
     TEXT_ERROR_CLOSE_HANDLER = "Не удалось закрыть чужой обработчик лога {name}"
     TEXT_ERROR_CONNECT_BUTTON = (
         "Ошибка при назначении обработчиков кнопкам или другим объектам {e}"
@@ -138,7 +137,11 @@ class _Const:
     )
     TEXT_ERROR_PROCESSING_CLIPBOARD_1 = "Чтение буфера обмена"
     TEXT_ERROR_REPLACE_TEXT = "Ошибка при формировании/записи заменяющего текста"
+    TEXT_ERROR_RUN_CALCULATOR = "Не удалось запустить {calculator}: {e}"
     TEXT_ERROR_SCROLL = "Ошибка при вызове окна диалога. {e}"
+    TEXT_ERROR_SEND_EMAIL = "Ошибка при выводе адреса e-mail"
+    TEXT_ERROR_SEND_SIGNATURE = "Ошибка при выводе подписи"
+    TEXT_ERROR_SEND_TELEPHONE = "Ошибка при выводе номера телефона"
     TEXT_ERROR_START_APP = "Фатальная ошибка на старте приложения {e}"
     TEXT_ERROR_STOP_DIALOG = "Ошибка при завершении диалога"
     TEXT_ERROR_SHOW_REPLACEMENTS_TEXT = (
