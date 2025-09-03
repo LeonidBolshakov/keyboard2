@@ -1,11 +1,6 @@
 import time, threading
 from keyboard import send, release, write
 
-try:
-    import pyperclip
-except ImportError:
-    pyperclip = None
-
 
 class LibKeyboard:
     def write_text(self, text: str) -> None:

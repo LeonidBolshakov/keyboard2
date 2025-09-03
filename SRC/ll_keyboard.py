@@ -122,7 +122,7 @@ class LowLevelKeyboardHook:
         self.handlers = handlers
         self._hook_id: Optional[int] = None
         self._callback = None
-        self._pressed = set()
+        self._pressed: set[int] = set()
 
         if sys.platform.startswith("win"):
             # Инициализируем WinAPI.

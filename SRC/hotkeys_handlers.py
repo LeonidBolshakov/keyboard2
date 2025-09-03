@@ -76,15 +76,3 @@ class HotkeysHandlers:
     def send_signature(self) -> None:
         """Вставляет две строки подписи."""
         self.write_var("signature")
-
-    @staticmethod
-    def paste_via_qt(text: str, pause: float = 0.1) -> None:
-        cb = QApplication.clipboard()
-        old = cb.text(mode=QClipboard.Mode.Clipboard)
-        try:
-            cb.setText(text, mode=QClipboard.Mode.Clipboard)
-            time.sleep(pause)  # обновление буфера
-            llk.press_ctrl_and(0x56, pause)  # Ctrl+V
-            time.sleep(pause)  # завершение вставки
-        finally:
-            cb.setText(old, mode=QClipboard.Mode.Clipboard)

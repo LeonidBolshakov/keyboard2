@@ -15,7 +15,7 @@ from SRC.windows_hotkeys import HotkeysWin
 from SRC.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers
 from SRC.try_log import log_exceptions
 import SRC.ll_keyboard as llk
-from constants import C
+from SRC.constants import C
 
 
 class Controller:
@@ -28,7 +28,7 @@ class Controller:
         ui : объект виджета
             Ссылка на UI, в который будут выводиться сообщения.
         """
-        self.llk_hook: llk.KeyboardHook | None = None
+        self.llk_hook: llk.LowLevelKeyboardHook | None = None
         self.hw = HotkeysWin()
         self.hotkeys_handlers = HotkeysHandlers()
         self.keys = llk.Keys()
