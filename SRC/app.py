@@ -3,7 +3,7 @@
 
 Назначение модуля
 -----------------
-Запускает главный цикл Qt, создаёт основное окно, системный трей и регистрирует
+запускает главный цикл Qt, создаёт основное окно, системный трей и регистрирует
 глобальные и одиночные горячие клавиши.
 Следит, чтобы приложение существовало в одном экземпляре.
 
@@ -30,6 +30,8 @@ from __future__ import annotations
 import sys
 import logging
 
+from PyQt6.QtCore import QObject
+
 logger = logging.getLogger(__name__)
 
 from PyQt6 import QtWidgets
@@ -44,7 +46,7 @@ from SRC.try_log import log_exceptions
 from SRC.constants import C
 
 
-class StartApp:
+class StartApp(QObject):
     """жизненный цикл приложения.
 
     Отвечает за:
@@ -55,10 +57,16 @@ class StartApp:
     """
 
     def __init__(self) -> None:
-        """Готовит инфраструктуру: ``QApplication``, UI и контроллер."""
+        """
+        Проверка платформы и единственности экземпляра.
+        Готовит инфраструктуру: ``QApplication``, UI и контроллер.
+        """
         super().__init__()
 
         self.app = self.create_app()
+        self.single = SingleInstance()
+        if not self.can_we_continue():
+            raise SystemExit(1)
         self.ui = MainWindow()
         self.control = Controller()
         self.hk_filter = HotkeyFilter(self.control.on_hotkey)
@@ -69,22 +77,15 @@ class StartApp:
         """Запускает приложение.
 
         Порядок действий:
-        1. Проверка платформы и единственности экземпляра.
-        2. Инициализация трея.
-        3. Регистрация горячих клавиш.
+        1. Регистрация горячих клавиш.
+        2. Подготовка к выходу
+        3. Инициализация трея.
         4. Вход в цикл событий.
 
         Returns
         int
             Код завершения ``QApplication.exec()``.
         """
-        if not self.can_we_continue():
-            f.show_message(
-                C.TEXT_MESSAGE_NO_START_PROGRAM,
-                C.TIME_MESSAGE_NO_START_PROGRAM,
-                C.COLOR_MESSAGE_NO_START_PROGRAM,
-            )
-            raise SystemExit(1)
 
         _ = int(self.ui.winId())
         self.control.register_global_hotkeys()
@@ -92,7 +93,7 @@ class StartApp:
         self.connect_to_quit()
         self.create_tray()
 
-        return self.app.exec()
+        return self.app.exec()  # Вход в цикл событий
 
     def can_we_continue(self) -> bool:
         """Проверяет совместимость платформы и отсутствие второго экземпляра.
@@ -106,21 +107,31 @@ class StartApp:
             raise SystemExit(1)
 
         # единственный экземпляр
-        if not self.single_copy():
+        if self.single.already_running():
+            f.show_message(  # Сообщение о том, что программа уже загружена
+                C.TEXT_MESSAGE_NO_START_PROGRAM,
+                C.TIME_MESSAGE_NO_START_PROGRAM,
+                C.COLOR_MESSAGE_NO_START_PROGRAM,
+            )
             return False
         return True
 
     @log_exceptions(C.TEXT_ERROR_CONNECT_CLEANUP)
     def connect_to_quit(self) -> None:
         """Привязывает программу, которая по окончанию работы освобождает ресурсы"""
-        self.app.aboutToQuit.connect(self.control.cleanup)  # type: ignore[arg-type]
+        self.app.aboutToQuit.connect(self.cleanup)  # type: ignore[arg-type]
+
+    def cleanup(self) -> None:
+        """Очистка ресурсов"""
+        self.single.cleanup()
+        self.control.cleanup()
 
     @log_exceptions(C.TEXT_ERROR_CREATE_APP)
     def create_app(self) -> QtWidgets.QApplication:
         """Создаёт и настраивает ``QApplication``.
 
         Возвращает объект приложения, отключает авто‑выход при закрытии всех
-        окон, подключает обработчик завершения.
+        окон.
         """
 
         app = QtWidgets.QApplication(sys.argv)  # type: ignore
@@ -134,37 +145,11 @@ class StartApp:
         try:
             Tray(
                 self.app,
-                on_quit=self.do_quit,
-                actions={"Вызов диалога": self.ui.start_dialogue},
+                on_quit=QtWidgets.QApplication.quit,
+                actions={"Вызов диалога": self.ui.start_dialog},
             )
         except Exception as e:
             logger.warning(C.TEXT_ERROR_TRAY.format(e=e))
-
-    def do_quit(self) -> None:
-        """Корректно завершает цикл Qt."""
-        QtWidgets.QApplication.quit()
-
-    def single_copy(self) -> bool:
-        """Гарантирует запуск единственного экземпляра приложения.
-
-        Returns
-        bool
-            ``True`` если владение получено. Иначе ``False`` и выводится
-            диагностическое сообщение в лог.
-        """
-        single = SingleInstance()
-
-        if single.already_running():
-            logger.info(C.SINGLE_TEXT)
-            return False
-
-        if (
-            not single.request_ownership()
-        ):  # Проиграл в конкуренции при одновременном запуске с другой программой
-            logger.info(C.SINGLE_TEXT)
-            return False
-
-        return True
 
 
 if __name__ == "__main__":

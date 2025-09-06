@@ -28,7 +28,7 @@
 """
 
 from pathlib import Path
-import logging
+import logging, multiprocessing
 from logging.handlers import RotatingFileHandler
 
 from SRC.get_variable import Variables
@@ -50,7 +50,7 @@ class TuneLogger:
 
 
     _add_handlers() -> None
-    Добавляет обработчики в root-логгер без очистки.
+    Внутренний метод: добавляет обработчики в root-логгер без очистки.
 
 
     _create_file_handler() -> RotatingFileHandler
@@ -65,6 +65,7 @@ class TuneLogger:
 
     def __init__(self):
         self.variables = Variables()
+        self.queue = multiprocessing.Queue(-1)
         self.console_handler = logging.StreamHandler()
         self.file_handler = self._create_file_handler()
 
@@ -74,6 +75,7 @@ class TuneLogger:
         self._add_handlers()
         self._set_log_levels()
         self._set_log_format()
+        self._set_log_PyQt6()
 
     def _add_handlers(self) -> None:
         """Добавление обработчиков в головной логгер"""
@@ -119,14 +121,15 @@ class TuneLogger:
 
         mode = "w" if (not p.exists() or p.stat().st_size == 0) else "a"
 
-        return RotatingFileHandler(
+        file_handler = RotatingFileHandler(
             filename=str(p),
             mode=mode,
             maxBytes=C.ROTATING_MAX_BYTES,
             backupCount=C.ROTATING_BACKUP_COUNT,
             encoding="utf-8-sig",
-            delay=True,
         )
+
+        return file_handler
 
     @staticmethod
     def _remove_logging() -> None:
@@ -142,13 +145,13 @@ class TuneLogger:
     @try_log.log_exceptions(C.TEXT_ERROR_LOG_LEVEL_NAME)
     def _get_log_level(self, env_name: str, default_name: str) -> int:
         """
-        Возвращает числовой уровень логирования по имени уровня логирования.
+        Возвращает числовой уровень логирования соответствующий имени уровня логирования.
         Имя уровня логирования задаётся в окружении.
 
         :param env_name:        Имя переменной окружения, содержащей имя уровня логирования.
         :param default_name:    Имя уровня логирования, задаваемое по умолчанию.
-                                Применяется если нет значения для переменной окружения с имением,
-                                заданным предыдущим параметром.
+                                Применяется если значение предыдущего параметра задано неверно.
+
         :return:                Возвращает числовое значение уровня логирования.
                                 Если по заданным параметром числовое значение найти не удалось,
                                 возвращается - logging.DEBUG
@@ -158,3 +161,7 @@ class TuneLogger:
             name = str(default_name)
 
         return C.CONVERT_LOGGING_NAME_TO_CODE.get(name.upper(), logging.DEBUG)
+
+    def _set_log_PyQt6(self):
+        """Глушение лишних сообщений PyQt6"""
+        logging.getLogger("PyQt6").setLevel(logging.WARNING)

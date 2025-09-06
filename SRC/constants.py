@@ -36,6 +36,7 @@ class _Const:
     FILE_LOG_DIR_DEF: str = r"C:\TEMP"
     FILE_LOG_FILENAME_DEF: str = "keyboard2.log"
     FILE_LOG_PATH_DEF: str = str(Path(FILE_LOG_DIR_DEF) / FILE_LOG_FILENAME_DEF)
+    MARGIN_MAIN_WINDOW = (20, 20, 20, 20)
 
     # --- Формат сообщений
     LOG_FORMAT: str = (
@@ -64,6 +65,10 @@ class _Const:
     TIME_MESSAGE_START_PROGRAM = (
         0.3  # Время высвечивания сообщения о запуске программы (в секундах)
     )
+    TITLE_WARNING = "Предупреждение"
+    TEXT_NO_ADMIN = (
+        "Программа запущена НЕ с правами администратора\nНе все функции будут доступны"
+    )
 
     # --- Сообщение о неудачной загрузке программы
     COLOR_MESSAGE_NO_START_PROGRAM = QColor("red")
@@ -76,6 +81,7 @@ class _Const:
 
     # --- Сообщения логирования
     LOGGER_TEXT_CHANGE = "Заменённый текст *{text}*"
+    LOGGER_TEXT_ERROR_KEYBOARD = "Система отклонила автоматический ввод текста\n{e}"
     LOGGER_TEXT_ERROR_READ_CLIPBOARD = "Из Clipboard считан пустой текст"
     LOGGER_TEXT_LOAD_PROGRAM = "Программа загружена"
     LOGGER_TEXT_NO_IN_CLIPBOARD = (
@@ -85,9 +91,12 @@ class _Const:
     LOGGER_TEXT_RESTORED_CLIPBOARD = "Текст +*{clipboard_text}*+ возвращён буфер обмена"
     LOGGER_TEXT_START_DIALOGUE = "Начало диалога. Окно - {title}"
     LOGGER_TEXT_STOP_DIALOGUE = "Диалог завершён"
+    LOGGER_TEXT_UNCAUGHT = "Не перехваченное исключение"
+    LOGGER_TEXT_UNKNOWN = "Необработанное исключение {e}"
     LOGGER_TEXT_UNLOAD_PROGRAM = "Программа выгружена из памяти"
 
     # --- Работа с буфером обмена
+    CLIPBOARD_LOG_LIMIT = 50
     MAX_CLIPBOARD_READS = 2  # максимально число считываний буфера обмена
     TIME_DELAY_CTRL_C_V = 0.1  # Задержка, в секундах, после нажатия Ctrl+c
 
@@ -97,11 +106,10 @@ class _Const:
     # --- Настройки кнопок
     MIN_WIDTH_BUTTON = 170  # Минимальная ширина первых двух кнопок
     QSS_BUTTON = "font-weight: bold; font-size: 12pt; "
-    QSS_CANCEL = "color: lightblue"
     QSS_NO = "color: blue"
     QSS_TEXT = "color: mediumblue"  # Силь текстовых полей диалога
     QSS_YES = "color: blue"
-    TEXT_CANCEL_BUTTON = "Выгруз. программу\nНажми 3"
+    TEXT_CANCEL_BUTTON = "Выгрузить программу\nНажми 3"
     TEXT_NO_BUTTON = "Не заменять\nНажми 2/Esc"
     TEXT_YES_BUTTON = "Заменить\nНажми 1"
 
@@ -135,7 +143,6 @@ class _Const:
     TEXT_ERROR_PROCESSING_CLIPBOARD = (
         " Ошибка при чтении из буфера обмена {type_error}. {e}"
     )
-    TEXT_ERROR_PROCESSING_CLIPBOARD_1 = "Чтение буфера обмена"
     TEXT_ERROR_REPLACE_TEXT = "Ошибка при формировании/записи заменяющего текста"
     TEXT_ERROR_RUN_CALCULATOR = "Не удалось запустить {calculator}: {e}"
     TEXT_ERROR_SCROLL = "Ошибка при вызове окна диалога. {e}"

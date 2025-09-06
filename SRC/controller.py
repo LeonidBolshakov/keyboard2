@@ -14,6 +14,7 @@ logger = logging.getLogger(__name__)
 from SRC.windows_hotkeys import HotkeysWin
 from SRC.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers
 from SRC.try_log import log_exceptions
+from SRC.lib_keyboard import LibKeyboard
 import SRC.ll_keyboard as llk
 from SRC.constants import C
 
@@ -31,6 +32,7 @@ class Controller:
         self.llk_hook: llk.LowLevelKeyboardHook | None = None
         self.hw = HotkeysWin()
         self.hotkeys_handlers = HotkeysHandlers()
+        self.lib_keyboard = LibKeyboard()
         self.keys = llk.Keys()
 
     @log_exceptions
@@ -45,6 +47,7 @@ class Controller:
 
     @log_exceptions
     def set_single_hotkeys(self) -> None:
+        llk.reset_caps_lock()  # выключаем CapsLock
         hotkeys_llk: dict[int, Callable] = {
             self.keys.VK_CAPITAL: self.hotkeys_handlers.on_caps,
             self.keys.VK_SCROLL: self.hotkeys_handlers.on_scroll,

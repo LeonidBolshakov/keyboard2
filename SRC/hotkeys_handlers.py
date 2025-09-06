@@ -1,16 +1,11 @@
 import subprocess
 import logging
-import time
-
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtGui import QClipboard
-from mypy.checkpattern import self_match_type_names
 
 from SRC.try_log import log_exceptions
 from SRC.signals import signals_bus
-import SRC.ll_keyboard as llk
 from SRC.get_variable import Variables
-from lib_keyboard import LibKeyboard
+from SRC.ll_keyboard import Keys
+from SRC.lib_keyboard import LibKeyboard
 from SRC.constants import C
 
 logger = logging.getLogger(__name__)
@@ -27,7 +22,8 @@ class HotkeysHandlers:
     def __init__(self) -> None:
         """Инициализирует доступ к хранилищу переменных."""
         self.vars = Variables()
-        self.lib_kbd = LibKeyboard()
+        self.lib_kbd = LibKeyboard()  # types ignore
+        self.keys = Keys()
 
     def write_var(self, name: str) -> None:
         """Если переменная существует, вставляет её содержимое в активное окно."""
@@ -40,7 +36,7 @@ class HotkeysHandlers:
 
         :return: True – подавить дальнейшую обработку.
         """
-        self.lib_kbd.send_key("alt+shift")
+        self.change_register()
         return True
 
     @staticmethod
@@ -76,3 +72,6 @@ class HotkeysHandlers:
     def send_signature(self) -> None:
         """Вставляет две строки подписи."""
         self.write_var("signature")
+
+    def change_register(self) -> None:
+        self.lib_kbd.send_key("alt+shift")

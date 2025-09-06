@@ -96,7 +96,6 @@ class HotkeysWin(QObject):
         """
         Преобразует входные модификаторы в список:
         - разбивает строку на слова (если передана строка)
-        - нормализует регистр
         - удаляет пустые элементы
         - добавляет "norepeat"
         - удаляет дубликаты, сохраняя порядок
@@ -129,6 +128,11 @@ class HotkeysWin(QObject):
         self._reg_ids.clear()
 
     def mods_to_mask(self, mods_str: Iterable[str]) -> int:
+        """
+        Собирает модификаторы в маску
+        :param mods_str: Iterable[str] - список модификаторов
+        :return: int - маска
+        """
         mask = 0
         for mod_str in mods_str:
             mask |= self.str_to_mod[mod_str]

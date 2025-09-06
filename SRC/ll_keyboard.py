@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from typing import Callable, Dict, Optional
+from collections.abc import Callable
 import time
 from dataclasses import dataclass
 import ctypes
@@ -39,47 +40,37 @@ HC_ACTION = 0
 
 WM_KEYDOWN = 0x0100
 WM_KEYUP = 0x0101
-WM_SYSKEYDOWN = 0x0104
-WM_SYSKEYUP = 0x0105
+WM_SYS_KEY_DOWN = 0x0104
+WM_SYS_KEYUP = 0x0105
 
-_KEY_DOWN = {WM_KEYDOWN, WM_SYSKEYDOWN}
-_KEY_UP = {WM_KEYUP, WM_SYSKEYUP}
+_KEY_DOWN = {WM_KEYDOWN, WM_SYS_KEY_DOWN}
+_KEY_UP = {WM_KEYUP, WM_SYS_KEYUP}
 _KEY = _KEY_DOWN | _KEY_UP
 
-# Флаги структуры KBDLLHOOKSTRUCT.flags
-LLKHF_EXTENDED = 0x01
-LLKHF_LOWER_IL_INJECTED = 0x02
-LLKHF_INJECTED = 0x10
-LLKHF_ALTDOWN = 0x20
-LLKHF_UP = 0x80
+# Флаги структуры KBD_LL_HOOK_STRUCT.flags
+LL_KHF_UP = 0x80
 
-# ------------------------ Fallback-типы ----------------------------
-# Некоторые IDE-стабы (wintypes.pyi) не объявляют ULONG_PTR/HHOOK.
-# Делаем безопасные подстановки по размеру указателя.
-try:
-    ULONG_PTR = wintypes.ULONG_PTR  # type: ignore[attr-defined]
-except AttributeError:
-    ULONG_PTR = (
-        ctypes.c_ulonglong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_ulong
-    )  # noqa: N816
+ULONG_PTR = (
+    ctypes.c_ulonglong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_ulong
+)
 
 HHOOK = getattr(wintypes, "HHOOK", wintypes.HANDLE)
 
-# LRESULT может отсутствовать в wintypes.pyi IDE-ставах
 try:
-    LRESULT = wintypes.LRESULT  # type: ignore[attr-defined]
+    L_RESULT = wintypes.LRESULT  # type: ignore[attr-defined]
 except AttributeError:
-    # LONG_PTR по размеру указателя
-    LRESULT = (
+    L_RESULT = (
         ctypes.c_longlong if ctypes.sizeof(ctypes.c_void_p) == 8 else ctypes.c_long
-    )  # noqa: N816
+    )
 
 
 # ------------------------ Структуры WinAPI -------------------------
 # Определение C-структуры, используемой WinAPI.ctypes.wintypes доступен
 # на всех платформах, поэтому структуру можно объявить даже на не-Windows.
 # ВАЖНО: на x64 обязательно использовать ULONG_PTR для dwExtraInfo (или эквивалент).
-class KBDLLHOOKSTRUCT(ctypes.Structure):
+
+
+class KBD_LL_HOOK_STRUCT(ctypes.Structure):
     _fields_ = [
         ("vkCode", wintypes.DWORD),
         ("scanCode", wintypes.DWORD),
@@ -89,26 +80,22 @@ class KBDLLHOOKSTRUCT(ctypes.Structure):
     ]
 
 
-# Правильная сигнатура колбэка: LRESULT, WPARAM, LPARAM
+# Сигнатура callback: L_RESULT, WPARAM, LPARAM
 LowLevelKeyboardProc = ctypes.WINFUNCTYPE(
-    LRESULT,
-    ctypes.c_int,  # nCode
+    L_RESULT,
+    ctypes.c_long,  # nCode
     wintypes.WPARAM,  # wParam
-    wintypes.LPARAM,  # lParam (указатель на KBDLLHOOKSTRUCT)
+    wintypes.LPARAM,  # lParam (указатель на KBD_LL_HOOK_STRUCT)
 )
 
 # Флаг для события клавиатуры:
 KEY_EVENT_F_KEYUP = 0x0002  # означает "отпускание клавиши"
 
-# Виртуальные коды клавиш
-VK_SHIFT = 0x10
-VK_CONTROL = 0x11
-VK_ALT = 0x12
-VK_CAPITAL = 0x14
-VK_SCROLL = 0x91  # коды CapsLock и ScrollLock
-
 user32 = ctypes.WinDLL("user32", use_last_error=True)  # Функции работы с окнами/вводом
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # Общесистемные функции
+
+
+CallbackPy = Callable[[int, wintypes.WPARAM, wintypes.LPARAM], int]
 
 
 class LowLevelKeyboardHook:
@@ -121,35 +108,39 @@ class LowLevelKeyboardHook:
     def __init__(self, handlers: Dict[int, Callable[[], None]]):
         self.handlers = handlers
         self._hook_id: Optional[int] = None
-        self._callback = None
+        self._callback: CallbackPy
+        self._callback = LowLevelKeyboardProc(self._low_level_callback)
         self._pressed: set[int] = set()
 
         if sys.platform.startswith("win"):
-            # Инициализируем WinAPI.
-            # Создаём C-совместимый колбэк
-            self._callback = LowLevelKeyboardProc(self._low_level_callback)
-
-            # Прототипы функций
-            user32.SetWindowsHookExW.argtypes = [
-                ctypes.c_int,  # idHook
-                LowLevelKeyboardProc,  # lpfn
-                wintypes.HINSTANCE,  # hMod
-                wintypes.DWORD,  # dwThreadId
-            ]
-            user32.SetWindowsHookExW.restype = HHOOK
-
-            user32.CallNextHookEx.argtypes = [
-                HHOOK,
-                ctypes.c_int,
-                wintypes.WPARAM,
-                wintypes.LPARAM,
-            ]
-            user32.CallNextHookEx.restype = LRESULT
-
-            user32.UnhookWindowsHookEx.argtypes = [HHOOK]
-            user32.UnhookWindowsHookEx.restype = wintypes.BOOL
+            self._init_keyboard_hook_impl()
         else:
             raise OSError("Программа работает только под управлением Windows")
+
+    def _init_keyboard_hook_impl(self) -> None:
+        # Инициализируем WinAPI.
+        # Создаём C-совместимый callback
+        self._callback = LowLevelKeyboardProc(self._low_level_callback)
+
+        # Прототипы функций
+        user32.SetWindowsHookExW.argtypes = [
+            ctypes.c_int,  # идентификатор хука
+            LowLevelKeyboardProc,  # функция обратного вызова
+            wintypes.HINSTANCE,  # дескриптор модуля
+            wintypes.DWORD,  # идентификатор потока
+        ]
+        user32.SetWindowsHookExW.restype = HHOOK
+
+        user32.CallNextHookEx.argtypes = [
+            HHOOK,
+            ctypes.c_int,
+            wintypes.WPARAM,
+            wintypes.LPARAM,
+        ]
+        user32.CallNextHookEx.restype = L_RESULT
+
+        user32.UnhookWindowsHookEx.argtypes = [HHOOK]
+        user32.UnhookWindowsHookEx.restype = wintypes.BOOL
 
     # ------------------------------------------------------------------
     def install(self) -> None:
@@ -162,7 +153,8 @@ class LowLevelKeyboardHook:
 
         self._hook_id = user32.SetWindowsHookExW(WH_KEYBOARD_LL, self._callback, 0, 0)
         if not self._hook_id:
-            raise ctypes.WinError()
+            err = ctypes.get_last_error()
+            raise ctypes.WinError(err)
 
     # ------------------------------------------------------------------
     def uninstall(self) -> None:
@@ -173,7 +165,7 @@ class LowLevelKeyboardHook:
 
     # ------------------------------------------------------------------
     def _low_level_callback(self, nCode: int, wParam: int, lParam: int) -> int:
-        """Внутренний колбэк хука.
+        """Внутренний callback хука.
 
         При WM_KEYDOWN получает vkCode и, если он есть в handlers, вызывает обработчик.
         Передаёт событие дальше по цепочке через CallNextHookEx если вызванный обработчик вернул False
@@ -184,8 +176,8 @@ class LowLevelKeyboardHook:
         if wParam not in _KEY:
             return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
-        kb = ctypes.cast(lParam, ctypes.POINTER(KBDLLHOOKSTRUCT)).contents
-        is_keyup = (wParam in _KEY_UP) or bool(kb.flags & LLKHF_UP)
+        kb = ctypes.cast(lParam, ctypes.POINTER(KBD_LL_HOOK_STRUCT)).contents
+        is_keyup = (wParam in _KEY_UP) or bool(kb.flags & LL_KHF_UP)
 
         if is_keyup:
             # только освобождаем состояние, обработчик НЕ вызываем
@@ -226,7 +218,7 @@ def press_ctrl_and(key_code: int, delay: float = 0.05):
     """
 
     # 1. Ctrl down
-    user32.keybd_event(VK_CONTROL, 0, 0, 0)
+    user32.keybd_event(Keys.VK_CONTROL, 0, 0, 0)
     time.sleep(delay)
 
     # 2. Key down
@@ -238,13 +230,11 @@ def press_ctrl_and(key_code: int, delay: float = 0.05):
     time.sleep(delay)
 
     # 4. Ctrl up
-    user32.keybd_event(VK_CONTROL, 0, KEY_EVENT_F_KEYUP, 0)
+    user32.keybd_event(Keys.VK_CONTROL, 0, KEY_EVENT_F_KEYUP, 0)
 
 
-__all__ = [
-    "LowLevelKeyboardHook",
-    "KBDLLHOOKSTRUCT",
-    "WM_KEYDOWN",
-    "WH_KEYBOARD_LL",
-    "LLKHF_UP",
-]
+def reset_caps_lock():
+    state = ctypes.windll.user32.GetKeyState(0x14)
+    if state & 1:  # включен
+        ctypes.windll.user32.keybd_event(Keys.VK_CAPITAL, 0, 0, 0)
+        ctypes.windll.user32.keybd_event(Keys.VK_CAPITAL, 0, KEY_EVENT_F_KEYUP, 0)

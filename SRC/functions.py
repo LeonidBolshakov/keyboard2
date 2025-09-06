@@ -10,6 +10,7 @@ from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QPushButton, QMessageBox, QApplication
 
 import SRC.ll_keyboard as ll_keyboard
+from SRC.hotkeys_handlers import HotkeysHandlers
 from SRC.controller import Controller
 from SRC.constants import C
 
@@ -56,8 +57,6 @@ def making_button_settings(button: QPushButton, text: str, qss: str = "") -> Non
 
     if qss:
         button.setStyleSheet(qss + "; " + C.QSS_BUTTON + ";")
-    else:
-        button.setStyleSheet(C.QSS_BUTTON + ";")
 
     button.setText(text)
 
@@ -66,11 +65,14 @@ def making_button_settings(button: QPushButton, text: str, qss: str = "") -> Non
 
 
 def get_exe_directory() -> Path:
-    return (
-        Path(sys.executable).parent
-        if getattr(sys, "frozen", False)
-        else Path(__file__).resolve().parent.parent
-    )
+    """
+    Определяем директорию запуска программы
+    :return: (Path). Директория запуска программы.
+    """
+    if getattr(sys, "frozen", False):
+        meipass = getattr(sys, "_MEIPASS", None)  # только one_file
+        return Path(meipass) if meipass else Path(sys.executable).parent  # one_dir
+    return Path(__file__).resolve().parent.parent
 
 
 def put_text_to_clipboard(text: str) -> None:
@@ -89,7 +91,7 @@ def get_selection() -> str:
     """
     time_delay = C.TIME_DELAY_CTRL_C_V
     for _ in range(C.MAX_CLIPBOARD_READS):
-        text_from_clipboard = get_it_once(time_delay)
+        text_from_clipboard = get_it_once()
         if text_from_clipboard:
             return text_from_clipboard
         logger.info(C.LOGGER_TEXT_NO_IN_CLIPBOARD.format(time_delay=time_delay))
@@ -100,11 +102,9 @@ def get_selection() -> str:
     return ""
 
 
-def get_it_once(time_delay: float) -> str | None:
+def get_it_once() -> str | None:
     """
     Считывает выделенный текст в буфер обмена.
-
-    :param time_delay: (float) - время задержки проверки после нажатия клавиш Ctrl+C (в секундах).
 
     :return: (str) Текст, считанный из буфера обмена
     """
@@ -137,7 +137,10 @@ def get_window() -> gw._pygetwindow_win.Win32Window | None:
     return gw.getActiveWindow()
 
 
-def replace_selected_text():
-    """Заменяем выделенный текст"""
+def replace_selected_text_and_register():
+    """Заменяем выделенный текст и регистр клавиатуры"""
+
     VK_V = 0x56  # v
     ll_keyboard.press_ctrl_and(VK_V, C.TIME_DELAY_CTRL_C_V)  # Эмуляция Ctrl+v
+
+    HotkeysHandlers().change_register()  # Замена регистра

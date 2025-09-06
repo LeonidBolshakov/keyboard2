@@ -54,15 +54,13 @@ class SingleInstance:
         True, если сегмент памяти с ключом уже существует (другой процесс запущен).
         Подключается к сегменту только для проверки и сразу отцепляется.
         """
-        if self.mem.attach():  # сегмент есть → кто-то уже создал
-            self.mem.detach()  # мы не пользуемся им — просто проверяли
-            return True
-        return False
+        if self.mem.create(1):
+            return False
+        if self.mem.attach():
+            self.mem.detach()
+        return True
 
-    def request_ownership(self) -> bool:
-        """
-        Пытается создать сегмент (размер 1 байт). Возвращает True,
-        если создание удалось и теперь этот процесс — «владелец» ключа.
-        Если другая программа, в конкурентом режиме, захватила память, то "тапки её"
-        """
-        return self.mem.create(1)
+    def cleanup(self):
+        """Освобождение памяти - другие процессы могут работать"""
+        if self.mem.isAttached():
+            self.mem.detach()

@@ -1,19 +1,22 @@
 """Класс организации диалога с пользователем"""
 
-from enum import IntEnum
 import logging
 
 logger = logging.getLogger(__name__)
+
+from enum import IntEnum
+import os
 
 from PyQt6 import uic
 from PyQt6.QtGui import QCloseEvent, QKeySequence, QShortcut
 from PyQt6.QtCore import Qt, QTimer, QCoreApplication, pyqtBoundSignal
 
-from PyQt6.QtWidgets import QMainWindow, QDialogButtonBox, QPushButton
+from PyQt6.QtWidgets import QMainWindow, QDialogButtonBox, QPushButton, QMessageBox
 
 from SRC.signals import signals_bus
 from SRC.replacetext import ReplaceText
 from SRC.customtextedit import CustomTextEdit
+from SRC.controller import Controller
 from SRC.try_log import log_exceptions
 import SRC.functions as f
 from SRC.constants import C
@@ -47,12 +50,12 @@ class MainWindow(QMainWindow):
         # Объявление имён
         self.old_clipboard_text = ""
         self.clipboard_text = ""
-        self.is_restore_clipboard = True
+        self.controller = Controller()
 
         self.init_UI()  # Загружаем файл, сформированный Qt Designer
         self.init_buttons()  # Инициализируем переменные
         self.set_connects()  # Назначаем обработчики событий
-        self.setup_signals()
+        self.set_signals()  # Назначаем обработчики сигналов
         self.custom_UI()  # Делаем пользовательские настройки интерфейса
         self.add_shortcuts()  # Назначаем горячие клавиши
 
@@ -63,15 +66,21 @@ class MainWindow(QMainWindow):
         self.stop_dialogue(DialogResult.EXIT)
         event.ignore()
 
-    @staticmethod
-    def info_start():
+    def info_start(self):
         """Информирование о начале диалога"""
-        logging.info(C.LOGGER_TEXT_LOAD_PROGRAM)
+        logger.info(C.LOGGER_TEXT_LOAD_PROGRAM)
         f.show_message(
             C.TEXT_MESSAGE_START_PROGRAM.format(key=C.HOTKEY_BEGIN_DIALOGUE),
             C.TIME_MESSAGE_START_PROGRAM,
             C.COLOR_MESSAGE_START_PROGRAM,
         )
+
+        # Проверка запуска программы от имени администратора
+        logger.info(C.TEXT_NO_ADMIN)
+        if not self.is_admin():
+            QMessageBox.warning(
+                None, C.TITLE_WARNING, C.TEXT_NO_ADMIN, QMessageBox.StandardButton.Ok
+            )
 
     def init_UI(self) -> None:
         """Загрузка UI и атрибутов полей в объект класса"""
@@ -110,7 +119,7 @@ class MainWindow(QMainWindow):
         # Устанавливаем размеры, стили, свойства и названия кнопок
         f.making_button_settings(self.yes_button, C.TEXT_YES_BUTTON, C.QSS_YES)
         f.making_button_settings(self.no_button, C.TEXT_NO_BUTTON, C.QSS_NO)
-        f.making_button_settings(self.cancel_button, C.TEXT_CANCEL_BUTTON, C.QSS_CANCEL)
+        f.making_button_settings(self.cancel_button, C.TEXT_CANCEL_BUTTON)
 
         # Устанавливаем стили текстовых полей
         self.txtEditSource.setStyleSheet(C.QSS_TEXT)
@@ -166,11 +175,7 @@ class MainWindow(QMainWindow):
         try:
             text = f.get_selection()
         except (OSError, RuntimeError) as e:  # ожидаемые сбои ОС/окна
-            logger.warning(
-                C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(
-                    type_error=C.TEXT_ERROR_PROCESSING_CLIPBOARD_1, e=e
-                )
-            )
+            logger.warning(C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(type_error="", e=e))
             return
         except Exception as e:  # неожиданное
             logger.exception(
@@ -180,7 +185,6 @@ class MainWindow(QMainWindow):
 
         # 2. Пусто — мягко выходим
         if not text:
-            self.is_restore_clipboard = False
             return
 
         # 3. Отрисовка/обновление UI
@@ -188,7 +192,9 @@ class MainWindow(QMainWindow):
             self.show_original_text(text)
         except Exception as e:
             logger.warning(C.TEXT_ERROR_ORIGINAL_TEXT.format(e=e))
-        self.is_restore_clipboard = False
+
+    def on_change_original_text(self) -> None:
+        self.change_original_text()
 
     def change_original_text(self) -> None:
         """Изменение оригинального текста"""
@@ -200,7 +206,7 @@ class MainWindow(QMainWindow):
             logger.exception(C.TEXT_ERROR_CHANGE_TEXT.format(e=e))
 
     @log_exceptions(C.TEXT_ERROR_SCROLL)
-    def start_dialogue(self) -> None:
+    def start_dialog(self) -> None:
         """
         Начало работы с всплывающим окном.
         :return: None
@@ -224,7 +230,6 @@ class MainWindow(QMainWindow):
     def working_with_clipboard(self) -> None:
         # запоминаем буфер обмена для возможного дальнейшего восстановления
         self.old_clipboard_text = f.get_clipboard_text()
-        self.is_restore_clipboard = True
         self.processing_clipboard()  # Обрабатываем буфер обмена
 
     def working_with_window(self) -> None:
@@ -252,30 +257,28 @@ class MainWindow(QMainWindow):
             case DialogResult.EXIT:  # Выгрузка программы
                 pass
             case DialogResult.REPLACE:  # Заменяем выделенный текст
-                f.replace_selected_text()
+                f.replace_selected_text_and_register()
             case DialogResult.SKIP:  # Отказ от замены текста
                 pass
             case _:  # Непредусмотренная команда
                 logger.critical(C.TEXT_CRITICAL_ERROR.format(command=command))
 
     def restore_clipboard(self) -> None:
-        # Если буфер обмена не требуется для завершения действий Пользователя,
-        # то восстанавливаем первоначальный буфер обмена
-        if self.is_restore_clipboard:
-            f.put_text_to_clipboard(self.old_clipboard_text)
-            logger.info(
-                C.LOGGER_TEXT_RESTORED_CLIPBOARD.format(
-                    clipboard_text=self.old_clipboard_text
-                )
+        # Восстанавливаем первоначальный буфер обмена
+        f.put_text_to_clipboard(self.old_clipboard_text)
+        logger.info(
+            C.LOGGER_TEXT_RESTORED_CLIPBOARD.format(
+                clipboard_text=self.old_clipboard_text[: C.CLIPBOARD_LOG_LIMIT]
             )
+        )
 
     @log_exceptions(C.TEXT_ERROR_CONNECT_SIGNAL)
-    def setup_signals(self) -> None:
+    def set_signals(self) -> None:
         """Связываем сигнал с функцией обработки"""
         signals_bus.on_Yes.connect(self.on_Yes)
         signals_bus.on_No.connect(self.on_No)
         signals_bus.on_Cancel.connect(self.on_Cancel)
-        signals_bus.start_dialog.connect(self.start_dialogue)
+        signals_bus.start_dialog.connect(self.start_dialog)
 
     def add_shortcut(
         self,
@@ -309,3 +312,15 @@ class MainWindow(QMainWindow):
         except Exception as e:
             logger.error(C.TEXT_ERROR_EXIT.format(e=e))
             raise
+
+    @staticmethod
+    def is_admin() -> bool:
+        """
+        Проверка. Вошли ли в программу с правами администратора
+        :return: True - если в программу вошли с правами администратора.
+        """
+        try:
+            os.listdir(r"C:\Windows\Temp")  # Любое действие, требующее прав
+            return True
+        except PermissionError:
+            return False

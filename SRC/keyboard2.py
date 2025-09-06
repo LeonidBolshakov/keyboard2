@@ -10,7 +10,7 @@
 -------------
 - Инициирует настройку логирования (`TuneLogger`).
 - Инициирует класс приложения (`MainApp`).
-- Определяет функцию `main()` как оболочку запуска с обработкой ошибок.
+- Определяет функцию `main_app()` как оболочку запуска с обработкой ошибок.
 - Вызывает запуск при исполнении файла как скрипта.
 
 Примечание
@@ -30,21 +30,26 @@ from SRC.app import StartApp
 from SRC.constants import C
 
 
+def excepthook(exc_type, exc_value, exc_tb):
+    logger.exception(C.LOGGER_TEXT_UNCAUGHT, exc_info=(exc_type, exc_value, exc_tb))
+
+
 def keyboard2() -> int:
     """Запускает приложение с настройкой логирования и обработкой ошибок.
 
     Возвращает
     -----------
     int
-        Код завершения процесса (обычно код выхода Qt‑цикла событий).
+        Код завершения процесса (обычно код выхода Qt‑цикла событий)
     """
     try:
-        tune_logger = TuneLogger()
-        tune_logger.setup_logging()
+        TuneLogger().setup_logging()
     except Exception as e:
         # Если логгер не настроился, выводим сообщение и продолжаем запуск
         lg.basicConfig(level=lg.INFO, stream=sys.stderr)
         lg.getLogger().exception(C.TEXT_ERROR_TUNE_LOGGER.format(e=e))
+
+    sys.excepthook = excepthook  # глобальный обработчик исключений UI
 
     try:
         return int(StartApp().main_app())
