@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from SRC.windows_hotkeys import HotkeysWin
 from SRC.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers
 from SRC.try_log import log_exceptions
-from SRC.lib_keyboard import LibKeyboard
+from SRC.input_keys import SendInputKeyboard
 import SRC.ll_keyboard as llk
 from SRC.constants import C
 
@@ -32,7 +32,7 @@ class Controller:
         self.llk_hook: llk.LowLevelKeyboardHook | None = None
         self.hw = HotkeysWin()
         self.hotkeys_handlers = HotkeysHandlers()
-        self.lib_keyboard = LibKeyboard()
+        self.send_input_keyboards = SendInputKeyboard()
         self.keys = llk.Keys()
 
     @log_exceptions
@@ -81,7 +81,8 @@ class Controller:
                 self.hotkeys_handlers.send_signature()
 
     def press_ctrl_and(self, vk: int, delay_sec: float = C.TIME_DELAY_CTRL_C_V) -> None:
-        llk.press_ctrl_and(vk, delay_sec)
+        self.send_input_keyboards.press_ctrl_and_vk(vk, delay_sec)
+        # llk.press_ctrl_and(vk, delay_sec)
 
     def cleanup(self):
         self.hw.cleanup()

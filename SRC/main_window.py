@@ -230,6 +230,7 @@ class MainWindow(QMainWindow):
     def working_with_clipboard(self) -> None:
         # запоминаем буфер обмена для возможного дальнейшего восстановления
         self.old_clipboard_text = f.get_clipboard_text()
+        self.old_clipboard_text = "Прежний буфер обмена"
         self.processing_clipboard()  # Обрабатываем буфер обмена
 
     def working_with_window(self) -> None:
@@ -243,7 +244,7 @@ class MainWindow(QMainWindow):
     @log_exceptions(C.TEXT_ERROR_STOP_DIALOG)
     def stop_dialogue(self, command: DialogResult) -> None:
         self.processing_command(command)
-        self.restore_clipboard()
+        # self.restore_clipboard() Данный оператор мешает выполнять действия Ctrl+v для WORD,
         self.hide()  # Убираем окно с экрана
 
         logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)

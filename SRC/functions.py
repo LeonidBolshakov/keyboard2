@@ -9,7 +9,6 @@ from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QPushButton, QMessageBox, QApplication
 
-import SRC.ll_keyboard as ll_keyboard
 from SRC.hotkeys_handlers import HotkeysHandlers
 from SRC.controller import Controller
 from SRC.constants import C
@@ -141,6 +140,6 @@ def replace_selected_text_and_register():
     """Заменяем выделенный текст и регистр клавиатуры"""
 
     VK_V = 0x56  # v
-    ll_keyboard.press_ctrl_and(VK_V, C.TIME_DELAY_CTRL_C_V)  # Эмуляция Ctrl+v
+    controller.press_ctrl_and(VK_V, C.TIME_DELAY_CTRL_C_V)  # Эмуляция Ctrl+v
 
     HotkeysHandlers().change_register()  # Замена регистра

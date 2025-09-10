@@ -11,7 +11,7 @@
 
 from __future__ import annotations
 
-from typing import Callable, Dict, Optional
+from typing import Dict, Optional
 from collections.abc import Callable
 import time
 from dataclasses import dataclass
@@ -200,37 +200,40 @@ class LowLevelKeyboardHook:
         return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
 
-def press_ctrl_and(key_code: int, delay: float = 0.05):
-    """
-    Эмулирует комбинацию Ctrl+<Key> через WinAPI (keybd_event).
-
-    Параметры:
-        key_code : int
-            Виртуальный код клавиши (например 0x43 для 'C', 0x56 для 'V').
-        delay : float
-            Задержка между событиями клавиш в секундах (по умолчанию 0.05).
-
-    Логика:
-        1. Нажать Ctrl (keydown).
-        2. Нажать указанную клавишу (keydown).
-        3. Отпустить указанную клавишу (keyup).
-        4. Отпустить Ctrl (keyup).
-    """
-
-    # 1. Ctrl down
-    user32.keybd_event(Keys.VK_CONTROL, 0, 0, 0)
-    time.sleep(delay)
-
-    # 2. Key down
-    user32.keybd_event(key_code, 0, 0, 0)
-    time.sleep(delay)
-
-    # 3. Key up
-    user32.keybd_event(key_code, 0, KEY_EVENT_F_KEYUP, 0)
-    time.sleep(delay)
-
-    # 4. Ctrl up
-    user32.keybd_event(Keys.VK_CONTROL, 0, KEY_EVENT_F_KEYUP, 0)
+# Не применяется. Заменена на SendInput
+# Оставлена для истории и дальнейшего использования в других проектах.
+#
+# def press_ctrl_and(key_code: int, delay: float = 0.05):
+#     """
+#     Эмулирует комбинацию Ctrl+<Key> через WinAPI (keybd_event).
+#
+#     Параметры:
+#         key_code : int
+#             Виртуальный код клавиши (например 0x43 для 'C', 0x56 для 'V').
+#         delay : float
+#             Задержка между событиями клавиш в секундах (по умолчанию 0.05).
+#
+#     Логика:
+#         1. Нажать Ctrl (keydown).
+#         2. Нажать указанную клавишу (keydown).
+#         3. Отпустить указанную клавишу (keyup).
+#         4. Отпустить Ctrl (keyup).
+#     """
+#
+#     # 1. Ctrl down
+#     user32.keybd_event(Keys.VK_CONTROL, 0, 0, 0)
+#     time.sleep(delay)
+#
+#     # 2. Key down
+#     user32.keybd_event(key_code, 0, 0, 0)
+#     time.sleep(delay)
+#
+#     # 3. Key up
+#     user32.keybd_event(key_code, 0, KEY_EVENT_F_KEYUP, 0)
+#     time.sleep(delay)
+#
+#     # 4. Ctrl up
+#     user32.keybd_event(Keys.VK_CONTROL, 0, KEY_EVENT_F_KEYUP, 0)
 
 
 def reset_caps_lock():

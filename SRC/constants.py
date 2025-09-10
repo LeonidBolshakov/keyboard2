@@ -98,7 +98,9 @@ class _Const:
     # --- Работа с буфером обмена
     CLIPBOARD_LOG_LIMIT = 50
     MAX_CLIPBOARD_READS = 2  # максимально число считываний буфера обмена
-    TIME_DELAY_CTRL_C_V = 0.1  # Задержка, в секундах, после нажатия Ctrl+c
+    TIME_DELAY_CTRL_C_V = (
+        50  # Задержка, в мили секундах, после нажатия Ctrl+c или Ctrl+v
+    )
 
     # --- Пути программ
     UI_PATH_FROM_EXE = r"_internal\dialogue.ui"
