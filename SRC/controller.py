@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 from SRC.windows_hotkeys import HotkeysWin
 from SRC.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers
 from SRC.try_log import log_exceptions
-from SRC.input_keys import SendInputKeyboard
+from SRC.send_input_keys import SendInputKeyboard
 import SRC.ll_keyboard as llk
 from SRC.constants import C
 

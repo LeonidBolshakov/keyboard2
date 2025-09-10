@@ -2,6 +2,7 @@
 
 import logging
 
+
 logger = logging.getLogger(__name__)
 
 from enum import IntEnum
@@ -244,7 +245,6 @@ class MainWindow(QMainWindow):
     @log_exceptions(C.TEXT_ERROR_STOP_DIALOG)
     def stop_dialogue(self, command: DialogResult) -> None:
         self.processing_command(command)
-        # self.restore_clipboard() Данный оператор мешает выполнять действия Ctrl+v для WORD,
         self.hide()  # Убираем окно с экрана
 
         logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)
@@ -256,11 +256,11 @@ class MainWindow(QMainWindow):
         """
         match command:
             case DialogResult.EXIT:  # Выгрузка программы
-                pass
+                self.restore_clipboard()
             case DialogResult.REPLACE:  # Заменяем выделенный текст
                 f.replace_selected_text_and_register()
             case DialogResult.SKIP:  # Отказ от замены текста
-                pass
+                self.restore_clipboard()
             case _:  # Непредусмотренная команда
                 logger.critical(C.TEXT_CRITICAL_ERROR.format(command=command))
 
