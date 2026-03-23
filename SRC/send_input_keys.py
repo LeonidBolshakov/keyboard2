@@ -152,14 +152,21 @@ class SendInputKeyboard(object):
         ms = self._clamp_hold_ms(hold_ms)
         try:
             if ms == 0:
-                self._send(
-                    [
-                        self._vk(VK_CONTROL, 0),
-                        self._vk(vk, 0),
-                        self._vk(vk, KEY_EVENT_F_KEYUP),
-                        self._vk(VK_CONTROL, KEY_EVENT_F_KEYUP),
-                    ]
-                )
+                self._send([self._vk(VK_CONTROL, 0)])
+                self._send([self._vk(vk, 0)])
+
+                time.sleep(0.01)
+
+                self._send([self._vk(vk, KEY_EVENT_F_KEYUP)])
+                self._send([self._vk(VK_CONTROL, KEY_EVENT_F_KEYUP)])
+                # self._send(
+                #     [
+                #         self._vk(VK_CONTROL, 0),
+                #         self._vk(vk, 0),
+                #         self._vk(vk, KEY_EVENT_F_KEYUP),
+                #         self._vk(VK_CONTROL, KEY_EVENT_F_KEYUP),
+                #     ]
+                # )
             else:
                 self._send([self._vk(VK_CONTROL, 0), self._vk(vk, 0)])
                 self._busy_wait_ms(ms)

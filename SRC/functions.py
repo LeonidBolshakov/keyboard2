@@ -3,6 +3,7 @@
 import sys
 from pathlib import Path
 import logging
+import time
 
 import pygetwindow as gw  # type: ignore
 from PyQt6.QtCore import QTimer
@@ -88,33 +89,37 @@ def get_selection() -> str:
 
     :return: (str) - Выделенный текст или '' (пустая строка).
     """
-    time_delay = C.TIME_DELAY_CTRL_C_V
-    for _ in range(C.MAX_CLIPBOARD_READS):
-        text_from_clipboard = get_it_once()
-        if text_from_clipboard:
-            return text_from_clipboard
-        logger.info(C.LOGGER_TEXT_NO_IN_CLIPBOARD.format(time_delay=time_delay))
-        # Подготовка к следующей итерации
-        time_delay += C.TIME_DELAY_CTRL_C_V
+    delay_ms = C.TIME_DELAY_CTRL_C_V  # например 50–100
 
-    logger.info(f"{C.LOGGER_TEXT_ERROR_READ_CLIPBOARD}")
+    for _ in range(C.MAX_CLIPBOARD_READS):
+        text = get_it_once(delay_ms)
+        if text:
+            return text
+
+        logger.info(
+            C.LOGGER_TEXT_NO_IN_CLIPBOARD.format(time_delay=delay_ms)
+        )
+
+        delay_ms += C.TIME_DELAY_CTRL_C_V  # адаптивное увеличение
+
+    logger.info(C.LOGGER_TEXT_ERROR_READ_CLIPBOARD)
     return ""
 
 
-def get_it_once() -> str | None:
+def get_it_once(wait_ms:int) -> str | None:
     """
-    Считывает выделенный текст в буфер обмена.
+    Пытается скопировать текущее выделение через Ctrl+C и вернуть
+    новый текст из буфера обмена.
 
-    :return: (str) Текст, считанный из буфера обмена
+    Возвращает пустую строку, если буфер не изменился.
     """
 
-    clipboard = QApplication.clipboard()
-    if clipboard:
-        clipboard.clear()
-    VK_C = 0x43  # "C"
-    controller.press_ctrl_and(VK_C)
-    return get_clipboard_text()
+    VK_C = 0x43
+    before = get_clipboard_text()
 
+    controller.press_ctrl_and(VK_C, 0)
+
+    return wait_for_clipboard_change(before, wait_ms)
 
 def get_clipboard_text() -> str:
     """
@@ -143,3 +148,16 @@ def replace_selected_text_and_register():
     controller.press_ctrl_and(VK_V, C.TIME_DELAY_CTRL_C_V)  # Эмуляция Ctrl+v
 
     HotkeysHandlers().change_register()  # Замена регистра
+
+
+def wait_for_clipboard_change(before: str, timeout_ms: int) -> str:
+    import time
+
+    start = time.time()
+    while (time.time() - start) * 1000 < timeout_ms:
+        current = get_clipboard_text()
+        if current != before:
+            return current
+        time.sleep(0.01)  # 10 мс
+
+    return ""

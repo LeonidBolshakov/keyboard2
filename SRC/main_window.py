@@ -231,7 +231,6 @@ class MainWindow(QMainWindow):
     def working_with_clipboard(self) -> None:
         # запоминаем буфер обмена для возможного дальнейшего восстановления
         self.old_clipboard_text = f.get_clipboard_text()
-        self.old_clipboard_text = "Прежний буфер обмена"
         self.processing_clipboard()  # Обрабатываем буфер обмена
 
     def working_with_window(self) -> None:
