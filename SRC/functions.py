@@ -151,8 +151,6 @@ def replace_selected_text_and_register():
 
 
 def wait_for_clipboard_change(before: str, timeout_ms: int) -> str:
-    import time
-
     start = time.time()
     while (time.time() - start) * 1000 < timeout_ms:
         current = get_clipboard_text()
