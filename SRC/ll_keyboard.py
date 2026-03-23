@@ -13,7 +13,6 @@ from __future__ import annotations
 
 from typing import Dict, Optional
 from collections.abc import Callable
-import time
 from dataclasses import dataclass
 import ctypes
 from ctypes import wintypes

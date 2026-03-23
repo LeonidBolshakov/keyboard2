@@ -2,7 +2,6 @@
 
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 from enum import IntEnum
@@ -264,6 +263,7 @@ class MainWindow(QMainWindow):
                 logger.critical(C.TEXT_CRITICAL_ERROR.format(command=command))
 
     def restore_clipboard(self) -> None:
+        pass
         # Восстанавливаем первоначальный буфер обмена
         f.put_text_to_clipboard(self.old_clipboard_text)
         logger.info(

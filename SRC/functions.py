@@ -8,11 +8,25 @@ import time
 import pygetwindow as gw  # type: ignore
 from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QColor
-from PyQt6.QtWidgets import QPushButton, QMessageBox, QApplication
+from PyQt6.QtWidgets import QPushButton, QMessageBox
 
 from SRC.hotkeys_handlers import HotkeysHandlers
 from SRC.controller import Controller
 from SRC.constants import C
+from win_clipboard import (
+    get_clipboard_text as win_get_clipboard_text,
+    set_clipboard_text as win_set_clipboard_text,
+    get_clipboard_sequence_number,
+)
+
+
+def get_clipboard_text() -> str:
+    return win_get_clipboard_text()
+
+
+def put_text_to_clipboard(text: str) -> None:
+    win_set_clipboard_text(text)
+
 
 logger = logging.getLogger(__name__)
 
@@ -75,13 +89,6 @@ def get_exe_directory() -> Path:
     return Path(__file__).resolve().parent.parent
 
 
-def put_text_to_clipboard(text: str) -> None:
-    """Записываем текст в буфер обмена"""
-    clipboard = QApplication.clipboard()
-    if clipboard:
-        clipboard.setText(text)
-
-
 def get_selection() -> str:
     """
     Записываем выделенный на экране текст в буфер обмена, считываем его оттуда и возвращаем.
@@ -96,9 +103,7 @@ def get_selection() -> str:
         if text:
             return text
 
-        logger.info(
-            C.LOGGER_TEXT_NO_IN_CLIPBOARD.format(time_delay=delay_ms)
-        )
+        logger.info(C.LOGGER_TEXT_NO_IN_CLIPBOARD.format(time_delay=delay_ms))
 
         delay_ms += C.TIME_DELAY_CTRL_C_V  # адаптивное увеличение
 
@@ -106,7 +111,7 @@ def get_selection() -> str:
     return ""
 
 
-def get_it_once(wait_ms:int) -> str | None:
+def get_it_once(wait_ms: int) -> str:
     """
     Пытается скопировать текущее выделение через Ctrl+C и вернуть
     новый текст из буфера обмена.
@@ -115,19 +120,15 @@ def get_it_once(wait_ms:int) -> str | None:
     """
 
     VK_C = 0x43
-    before = get_clipboard_text()
 
-    controller.press_ctrl_and(VK_C, 0)
+    seq_before = get_clipboard_sequence_number()
 
-    return wait_for_clipboard_change(before, wait_ms)
+    controller.press_ctrl_and(VK_C, C.TIME_DELAY_CTRL_C_V)
 
-def get_clipboard_text() -> str:
-    """
-    Возвращаем текст буфера обмена
-    :return: (str).
-    """
-    clipboard = QApplication.clipboard()
-    return clipboard.text() if clipboard else ""
+    if wait_for_clipboard_update(seq_before, wait_ms):
+        return get_clipboard_text()
+
+    return ""
 
 
 # noinspection PyProtectedMember
@@ -150,12 +151,10 @@ def replace_selected_text_and_register():
     HotkeysHandlers().change_register()  # Замена регистра
 
 
-def wait_for_clipboard_change(before: str, timeout_ms: int) -> str:
+def wait_for_clipboard_update(seq_before: int, timeout_ms: int) -> bool:
     start = time.time()
     while (time.time() - start) * 1000 < timeout_ms:
-        current = get_clipboard_text()
-        if current != before:
-            return current
-        time.sleep(0.01)  # 10 мс
-
-    return ""
+        if get_clipboard_sequence_number() != seq_before:
+            return True
+        time.sleep(0.01)
+    return False
