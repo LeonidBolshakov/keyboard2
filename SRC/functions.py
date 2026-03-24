@@ -13,7 +13,7 @@ from PyQt6.QtWidgets import QPushButton, QMessageBox
 from SRC.hotkeys_handlers import HotkeysHandlers
 from SRC.controller import Controller
 from SRC.constants import C
-from win_clipboard import (
+from SRC.win_clipboard import (
     get_clipboard_text as win_get_clipboard_text,
     set_clipboard_text as win_set_clipboard_text,
     get_clipboard_sequence_number,
@@ -91,7 +91,7 @@ def get_exe_directory() -> Path:
 
 def get_selection() -> str:
     """
-    Записываем выделенный на экране текст в буфер обмена, считываем его оттуда и возвращаем.
+    Записываем выделенный на экране текст в буфер обмена.
     В случае неудачи делаем несколько попыток.
 
     :return: (str) - Выделенный текст или '' (пустая строка).
@@ -107,7 +107,7 @@ def get_selection() -> str:
 
         delay_ms += C.TIME_DELAY_CTRL_C_V  # адаптивное увеличение
 
-    logger.info(C.LOGGER_TEXT_ERROR_READ_CLIPBOARD)
+    logger.warning(C.LOGGER_TEXT_ERROR_READ_CLIPBOARD)
     return ""
 
 
