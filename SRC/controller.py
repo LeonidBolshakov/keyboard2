@@ -7,9 +7,6 @@
 """
 
 from typing import Callable
-import logging
-
-logger = logging.getLogger(__name__)
 
 from SRC.windows_hotkeys import HotkeysWin
 from SRC.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers

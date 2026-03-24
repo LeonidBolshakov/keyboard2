@@ -7,11 +7,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard">
+    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Убрал функционал восстановления clipboard">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/controller.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SRC/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/main_window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/windows_hotkeys.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/windows_hotkeys.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/debug.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/try_log.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/try_log.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -135,13 +135,22 @@
       <option name="project" value="LOCAL" />
       <updated>1774273805731</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Убрал функционал восстановления clipboard">
+      <option name="closed" value="true" />
+      <created>1774315827209</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1774315827209</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix(clipboard): устранена race condition после Ctrl+C&#10;&#10;Ожидание обновления буфера вместо немедленного чтения.&#10;Удалён clipboard.clear(), вызывавший потерю данных.&#10;Повышена стабильность и скорость работы." />
     <MESSAGE value="fix(clipboard): fix race condition after Ctrl+C&#10;&#10;- wait for clipboard update before reading&#10;- remove clipboard.clear() (was deleting copied text)&#10;- improve stability and speed" />
     <MESSAGE value="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard" />
-    <option name="LAST_COMMIT_MESSAGE" value="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard" />
+    <MESSAGE value="Убрал функционал восстановления clipboard" />
+    <option name="LAST_COMMIT_MESSAGE" value="Убрал функционал восстановления clipboard" />
   </component>
 </project>

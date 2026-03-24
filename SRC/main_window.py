@@ -66,7 +66,7 @@ class MainWindow(QMainWindow):
         event.ignore()
 
     def info_start(self):
-        """Информирование о начале диалога"""
+        """Информирование о начале работы программы"""
         logger.info(C.LOGGER_TEXT_LOAD_PROGRAM)
         f.show_message(
             C.TEXT_MESSAGE_START_PROGRAM.format(key=C.HOTKEY_BEGIN_DIALOGUE),
@@ -224,7 +224,7 @@ class MainWindow(QMainWindow):
             title = window.title
         else:
             title = C.TEXT_WINDOW_NOT_FOUND
-        logger.info(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
+        logger.debug(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
 
     def working_with_window(self) -> None:
         self.setWindowFlag(
@@ -239,7 +239,7 @@ class MainWindow(QMainWindow):
         self.processing_command(command)
         self.hide()  # Убираем окно с экрана
 
-        logger.info(C.LOGGER_TEXT_STOP_DIALOGUE)
+        logger.debug(C.LOGGER_TEXT_STOP_DIALOGUE)
 
     def processing_command(self, command: DialogResult):
         """
