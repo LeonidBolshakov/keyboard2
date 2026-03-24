@@ -182,11 +182,7 @@ class MainWindow(QMainWindow):
             )
             return
 
-        # 2. Пусто — мягко выходим
-        if not text:
-            return
-
-        # 3. Отрисовка/обновление UI
+        # 2. Отрисовка/обновление UI
         try:
             self.show_original_text(text)
         except Exception as e:

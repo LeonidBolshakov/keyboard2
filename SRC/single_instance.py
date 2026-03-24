@@ -61,6 +61,6 @@ class SingleInstance:
         return True
 
     def cleanup(self):
-        """Освобождение памяти - другие процессы могут работать"""
+        """Освобождение памяти — другие процессы могут работать"""
         if self.mem.isAttached():
             self.mem.detach()

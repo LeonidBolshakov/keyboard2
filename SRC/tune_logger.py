@@ -106,7 +106,7 @@ class TuneLogger:
 
     def _create_file_handler(self) -> RotatingFileHandler:
         """Создать файловый обработчик с ротацией."""
-        # читаем значение пути файла журнала в окружении, если его нет - дефолт — полноценный путь
+        # читаем значение пути файла журнала в окружении, если его нет — дефолт — полноценный путь
         path_str = self.variables.get_var(C.FILE_LOG_PATH, C.FILE_LOG_PATH_DEF)
         p = Path(path_str)
 
