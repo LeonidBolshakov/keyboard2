@@ -48,7 +48,6 @@ class MainWindow(QMainWindow):
         self.info_start()
 
         # Объявление имён
-        self.old_clipboard_text = ""
         self.clipboard_text = ""
         self.controller = Controller()
 
@@ -211,11 +210,11 @@ class MainWindow(QMainWindow):
         Начало работы с всплывающим окном.
         :return: None
         """
-        if not self.isHidden():  # Если диалог не закончен - новый не начинаем
+        if not self.isHidden():  # Если диалог не закончен — новый не начинаем
             return
 
         self.info_start_dialog()
-        self.working_with_clipboard()
+        self.processing_clipboard()  # Обрабатываем буфер обмена
         self.working_with_window()
 
     def info_start_dialog(self):
@@ -226,11 +225,6 @@ class MainWindow(QMainWindow):
         else:
             title = C.TEXT_WINDOW_NOT_FOUND
         logger.info(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
-
-    def working_with_clipboard(self) -> None:
-        # запоминаем буфер обмена для возможного дальнейшего восстановления
-        self.old_clipboard_text = f.get_clipboard_text()
-        self.processing_clipboard()  # Обрабатываем буфер обмена
 
     def working_with_window(self) -> None:
         self.setWindowFlag(
@@ -254,23 +248,13 @@ class MainWindow(QMainWindow):
         """
         match command:
             case DialogResult.EXIT:  # Выгрузка программы
-                self.restore_clipboard()
+                pass
             case DialogResult.REPLACE:  # Заменяем выделенный текст
                 f.replace_selected_text_and_register()
             case DialogResult.SKIP:  # Отказ от замены текста
-                self.restore_clipboard()
+                pass
             case _:  # Непредусмотренная команда
                 logger.critical(C.TEXT_CRITICAL_ERROR.format(command=command))
-
-    def restore_clipboard(self) -> None:
-        pass
-        # Восстанавливаем первоначальный буфер обмена
-        f.put_text_to_clipboard(self.old_clipboard_text)
-        logger.info(
-            C.LOGGER_TEXT_RESTORED_CLIPBOARD.format(
-                clipboard_text=self.old_clipboard_text[: C.CLIPBOARD_LOG_LIMIT]
-            )
-        )
 
     @log_exceptions(C.TEXT_ERROR_CONNECT_SIGNAL)
     def set_signals(self) -> None:

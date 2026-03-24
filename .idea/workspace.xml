@@ -1,15 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="AnalysisUIOptions">
+    <option name="ANALYZE_INJECTED_CODE" value="false" />
+  </component>
   <component name="AutoImportSettings">
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="fix(clipboard): fix race condition after Ctrl+C&#10;&#10;- wait for clipboard update before reading&#10;- remove clipboard.clear() (was deleting copied text)&#10;- improve stability and speed">
-      <change afterPath="$PROJECT_DIR$/SRC/win_clipboard.py" afterDir="false" />
+    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/functions.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/functions.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/ll_keyboard.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/ll_keyboard.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SRC/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/main_window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/windows_hotkeys.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/windows_hotkeys.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/debug.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,6 +40,9 @@
     &quot;accountId&quot;: &quot;d4cba81d-56f9-4f06-8c37-f5202a768f6a&quot;
   }
 }</component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -46,26 +51,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Python.app.executor&quot;: &quot;Run&quot;,
-    &quot;Python.controller.executor&quot;: &quot;Run&quot;,
-    &quot;Python.debug.executor&quot;: &quot;Run&quot;,
-    &quot;Python.hotkey_win.executor&quot;: &quot;Run&quot;,
-    &quot;Python.keyboard2.executor&quot;: &quot;Run&quot;,
-    &quot;Python.lib_keyboard.executor&quot;: &quot;Run&quot;,
-    &quot;Python.ll_keyboard.executor&quot;: &quot;Run&quot;,
-    &quot;Python.main_window.executor&quot;: &quot;Run&quot;,
-    &quot;Python.oi.executor&quot;: &quot;Run&quot;,
-    &quot;Python.single_instance.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/PycharmProjects/keyboard2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;actions.on.save&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Python.app.executor": "Run",
+    "Python.controller.executor": "Run",
+    "Python.debug.executor": "Run",
+    "Python.hotkey_win.executor": "Run",
+    "Python.keyboard2.executor": "Run",
+    "Python.lib_keyboard.executor": "Run",
+    "Python.ll_keyboard.executor": "Run",
+    "Python.main_window.executor": "Run",
+    "Python.oi.executor": "Run",
+    "Python.single_instance.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "git-widget-placeholder": "main",
+    "last_opened_file_path": "C:/PycharmProjects/keyboard2",
+    "run.code.analysis.last.selected.profile": "aDefault",
+    "settings.editor.selected.configurable": "com.jetbrains.python.black.configuration.BlackFormatterConfigurable"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="keyboard2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="keyboard2" />
@@ -121,12 +127,21 @@
       <option name="project" value="LOCAL" />
       <updated>1774257328610</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard">
+      <option name="closed" value="true" />
+      <created>1774273805731</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1774273805731</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix(clipboard): устранена race condition после Ctrl+C&#10;&#10;Ожидание обновления буфера вместо немедленного чтения.&#10;Удалён clipboard.clear(), вызывавший потерю данных.&#10;Повышена стабильность и скорость работы." />
     <MESSAGE value="fix(clipboard): fix race condition after Ctrl+C&#10;&#10;- wait for clipboard update before reading&#10;- remove clipboard.clear() (was deleting copied text)&#10;- improve stability and speed" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix(clipboard): fix race condition after Ctrl+C&#10;&#10;- wait for clipboard update before reading&#10;- remove clipboard.clear() (was deleting copied text)&#10;- improve stability and speed" />
+    <MESSAGE value="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard" />
   </component>
 </project>

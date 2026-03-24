@@ -25,7 +25,7 @@ from __future__ import annotations
 
 import ctypes
 from ctypes import wintypes
-from typing import Iterable, cast
+from typing import Iterable
 from PyQt6.QtCore import QObject, QByteArray
 
 from PyQt6 import QtCore
@@ -97,7 +97,7 @@ class HotkeysWin(QObject):
         Преобразует входные модификаторы в список:
         - разбивает строку на слова (если передана строка)
         - удаляет пустые элементы
-        - добавляет "norepeat"
+        — добавляет "norepeat"
         - удаляет дубликаты, сохраняя порядок
         """
         items = mods.split() if isinstance(mods, str) else list(mods)

@@ -30,9 +30,8 @@ press_ctrl_and_vk(VK_V, ms)
 """
 
 import time, ctypes
-from ctypes import wintypes, c_size_t, c_void_p
+from ctypes import wintypes
 from typing import Iterable, SupportsFloat, SupportsInt, Sequence
-
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 
