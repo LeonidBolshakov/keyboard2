@@ -142,9 +142,7 @@ class _Const:
     TEXT_ERROR_LOG_LEVEL_NAME = "Некорректное значение уровня"
     TEXT_ERROR_ON_NO = "Ошибка в диалоговом окне при нажатии на кнопку NO"
     TEXT_ERROR_ORIGINAL_TEXT = "Ошибка отображения выделенного текста {e}"
-    TEXT_ERROR_PROCESSING_CLIPBOARD = (
-        " Ошибка при чтении из буфера обмена {type_error}. {e}"
-    )
+    TEXT_ERROR_PROCESSING_CLIPBOARD = " Ошибка при чтении из буфера обмена. {e}"
     TEXT_ERROR_REPLACE_TEXT = "Ошибка при формировании/записи заменяющего текста"
     TEXT_ERROR_RUN_CALCULATOR = "Не удалось запустить {calculator}: {e}"
     TEXT_ERROR_SCROLL = "Ошибка при вызове окна диалога. {e}"

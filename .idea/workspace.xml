@@ -7,11 +7,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Убрал функционал восстановления clipboard">
+    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Переработана реакция на выделение пустого объекта">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/main_window.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/try_log.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/try_log.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -51,27 +48,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.app.executor": "Run",
-    "Python.controller.executor": "Run",
-    "Python.debug.executor": "Run",
-    "Python.hotkey_win.executor": "Run",
-    "Python.keyboard2.executor": "Run",
-    "Python.lib_keyboard.executor": "Run",
-    "Python.ll_keyboard.executor": "Run",
-    "Python.main_window.executor": "Run",
-    "Python.oi.executor": "Run",
-    "Python.single_instance.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "C:/PycharmProjects/keyboard2",
-    "run.code.analysis.last.selected.profile": "aDefault",
-    "settings.editor.selected.configurable": "com.jetbrains.python.black.configuration.BlackFormatterConfigurable"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.app.executor&quot;: &quot;Run&quot;,
+    &quot;Python.controller.executor&quot;: &quot;Run&quot;,
+    &quot;Python.debug.executor&quot;: &quot;Run&quot;,
+    &quot;Python.hotkey_win.executor&quot;: &quot;Run&quot;,
+    &quot;Python.keyboard2.executor&quot;: &quot;Run&quot;,
+    &quot;Python.lib_keyboard.executor&quot;: &quot;Run&quot;,
+    &quot;Python.ll_keyboard.executor&quot;: &quot;Run&quot;,
+    &quot;Python.main_window.executor&quot;: &quot;Run&quot;,
+    &quot;Python.oi.executor&quot;: &quot;Run&quot;,
+    &quot;Python.single_instance.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/PycharmProjects/keyboard2&quot;,
+    &quot;run.code.analysis.last.selected.profile&quot;: &quot;aDefault&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.black.configuration.BlackFormatterConfigurable&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="keyboard2" type="PythonConfigurationType" factoryName="Python" nameIsGenerated="true">
       <module name="keyboard2" />
@@ -143,14 +140,52 @@
       <option name="project" value="LOCAL" />
       <updated>1774315827209</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Убрал лишние сообщения логирования">
+      <option name="closed" value="true" />
+      <created>1774318780147</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1774318780147</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Перед созданием EXE">
+      <option name="closed" value="true" />
+      <created>1774322522975</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1774322522975</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Переработана реакция на выделение пустого объекта">
+      <option name="closed" value="true" />
+      <created>1774342928063</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1774342928063</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix(clipboard): устранена race condition после Ctrl+C&#10;&#10;Ожидание обновления буфера вместо немедленного чтения.&#10;Удалён clipboard.clear(), вызывавший потерю данных.&#10;Повышена стабильность и скорость работы." />
     <MESSAGE value="fix(clipboard): fix race condition after Ctrl+C&#10;&#10;- wait for clipboard update before reading&#10;- remove clipboard.clear() (was deleting copied text)&#10;- improve stability and speed" />
     <MESSAGE value="Fix clipboard handling&#10;&#10;- use Windows API instead of PyQt clipboard&#10;- use clipboard sequence number&#10;- remove incorrect fallback to old clipboard" />
     <MESSAGE value="Убрал функционал восстановления clipboard" />
-    <option name="LAST_COMMIT_MESSAGE" value="Убрал функционал восстановления clipboard" />
+    <MESSAGE value="Убрал лишние сообщения логирования" />
+    <MESSAGE value="Перед созданием EXE" />
+    <MESSAGE value="Переработана реакция на выделение пустого объекта" />
+    <option name="LAST_COMMIT_MESSAGE" value="Переработана реакция на выделение пустого объекта" />
   </component>
 </project>

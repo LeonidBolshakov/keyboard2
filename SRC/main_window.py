@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 from enum import IntEnum
 import os
 
+import argparse
 from PyQt6 import uic
 from PyQt6.QtGui import QCloseEvent, QKeySequence, QShortcut
 from PyQt6.QtCore import Qt, QTimer, QCoreApplication, pyqtBoundSignal
@@ -46,6 +47,9 @@ class MainWindow(QMainWindow):
 
         # Информирование о первоначальной загрузке программы
         self.info_start()
+        self.fast_mode = (
+            self.get_arg_CLI()
+        )  # --fast - не вызывать диалоговое окно, а сразу делать замену
 
         # Объявление имён
         self.clipboard_text = ""
@@ -168,25 +172,14 @@ class MainWindow(QMainWindow):
         """Отказ от замены текста"""
         self.stop_dialogue(DialogResult.SKIP)
 
-    def processing_clipboard(self) -> None:
+    def get_text_from_clipboard(self) -> str | None:
         """Обрабатываем буфер обмена"""
-        # 1. Получение выделения
+        # Получаем  выделенный текст
         try:
-            text = f.get_selection()
+            return f.get_selection()
         except (OSError, RuntimeError) as e:  # ожидаемые сбои ОС/окна
-            logger.warning(C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(type_error="", e=e))
-            return
-        except Exception as e:  # неожиданное
-            logger.exception(
-                C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(type_error="?????", e=e)
-            )
-            return
-
-        # 2. Отрисовка/обновление UI
-        try:
-            self.show_original_text(text)
-        except Exception as e:
-            logger.warning(C.TEXT_ERROR_ORIGINAL_TEXT.format(e=e))
+            logger.warning(C.TEXT_ERROR_PROCESSING_CLIPBOARD.format(e=e))
+            return None
 
     def on_change_original_text(self) -> None:
         self.change_original_text()
@@ -210,8 +203,22 @@ class MainWindow(QMainWindow):
             return
 
         self.info_start_dialog()
-        self.processing_clipboard()  # Обрабатываем буфер обмена
-        self.working_with_window()
+        cplipboard_text = self.get_text_from_clipboard()  # Читаем буфер обмена
+
+        if self.fast_mode:
+            f.put_text_to_clipboard(
+                ReplaceText().swap_keyboard_register(cplipboard_text)
+            )
+            f.replace_selected_text_and_register()
+            return
+
+        # Отрисовка/обновление UI
+        try:
+            self.show_original_text(cplipboard_text)
+            self.change_original_text()
+            self.display_window()
+        except Exception as e:
+            logger.warning(C.TEXT_ERROR_ORIGINAL_TEXT.format(e=e))
 
     def info_start_dialog(self):
         window = f.get_window()  # Получаем активное окно операционной системы
@@ -222,7 +229,7 @@ class MainWindow(QMainWindow):
             title = C.TEXT_WINDOW_NOT_FOUND
         logger.debug(C.LOGGER_TEXT_START_DIALOGUE.format(title=title))
 
-    def working_with_window(self) -> None:
+    def display_window(self) -> None:
         self.setWindowFlag(
             Qt.WindowType.WindowStaysOnTopHint, True
         )  # Поднимаем окно диалога над всеми окнами
@@ -304,3 +311,9 @@ class MainWindow(QMainWindow):
             return True
         except PermissionError:
             return False
+
+    def get_arg_CLI(self) -> bool:
+        parser = argparse.ArgumentParser()
+        parser.add_argument("--fast", action="store_true")
+
+        return parser.parse_args().fast
