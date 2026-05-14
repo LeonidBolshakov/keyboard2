@@ -26,13 +26,16 @@ from __future__ import annotations
 import ctypes
 from ctypes import wintypes
 from typing import Iterable
-from PyQt6.QtCore import QObject, QByteArray
+import logging
 
+logger = logging.getLogger(__name__)
+
+from PyQt6.QtCore import QObject, QByteArray
 from PyQt6 import QtCore
 from PyQt6.sip import voidptr
 
 # Доступ к функциям Windows-библиотеки user32.dll
-user32 = ctypes.windll.user32
+user32 = ctypes.WinDLL("user32", use_last_error=True)
 
 
 def LO_WORD(dword: int) -> int:
@@ -90,7 +93,7 @@ class HotkeysWin(QObject):
         """
         ok = user32.RegisterHotKey(None, reg_id, mask, vk)
         if not ok:
-            raise OSError(ctypes.WinError(ctypes.get_last_error()))
+            raise ctypes.WinError(ctypes.get_last_error())
 
     def _prepare_mods(self, mods: Iterable[str] | str) -> list[str]:
         """
@@ -189,5 +192,5 @@ class HotkeyFilter(QtCore.QAbstractNativeEventFilter):
             self.handler(hk_id, vk, mods)
         except Exception:
             # Гасим исключения обработчика, чтобы не ломать цикл Qt
-            pass
+            logger.exception("Ошибка обработки глобальной горячей клавиши")
         return True, voidptr(0)

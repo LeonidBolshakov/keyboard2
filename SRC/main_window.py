@@ -5,7 +5,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from enum import IntEnum
-import os
+import ctypes
 
 import argparse
 from PyQt6 import uic
@@ -309,9 +309,9 @@ class MainWindow(QMainWindow):
         :return: True - если в программу вошли с правами администратора.
         """
         try:
-            os.listdir(r"C:\Windows\Temp")  # Любое действие, требующее прав
-            return True
-        except PermissionError:
+            return bool(ctypes.windll.shell32.IsUserAnAdmin())
+        except Exception:
+            logger.exception("Не удалось проверить права администратора")
             return False
 
     def get_arg_CLI(self) -> bool:

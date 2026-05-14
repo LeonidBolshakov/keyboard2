@@ -12,6 +12,7 @@ constants.py — неизменяемые константы.
 
 import logging
 from pathlib import Path
+import os
 
 from PyQt6.QtGui import QColor
 
@@ -33,7 +34,9 @@ class _Const:
     # --- Значения по умолчанию
     CONSOLE_LOG_LEVEL_DEF: str = "INFO"
     FILE_LOG_LEVEL_DEF: str = "DEBUG"
-    FILE_LOG_DIR_DEF: str = r"C:\TEMP"
+    FILE_LOG_DIR_DEF: str = str(
+        Path(os.getenv("LOCALAPPDATA", Path.home())) / "keyboard2" / "logs"
+    )
     FILE_LOG_FILENAME_DEF: str = "keyboard2.log"
     FILE_LOG_PATH_DEF: str = str(Path(FILE_LOG_DIR_DEF) / FILE_LOG_FILENAME_DEF)
     MARGIN_MAIN_WINDOW = (20, 20, 20, 20)

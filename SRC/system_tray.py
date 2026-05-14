@@ -75,14 +75,14 @@ class Tray(QtWidgets.QSystemTrayIcon):
             try:
                 if not act:
                     continue
-                act.triggered.connect(handler)
+                act.triggered.connect(lambda checked=False, h=handler: h())
             except Exception as e:
                 logger.error(C.TEXT_ERROR_CONNECT_SIGNAL)
 
         quit_action = menu.addAction("Выход")
         try:
             if quit_action:
-                quit_action.triggered.connect(on_quit)
+                quit_action.triggered.connect(lambda checked=False: on_quit())
         except Exception as e:
             logger.exception(C.TEXT_ERROR_CONNECT_SIGNAL)
 

@@ -7,11 +7,14 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Добавлен параметр CLI: --fast. Если параметр не задать программа работает по-прежнему.&#10;При заданном параметре диалоговое окно замены регистра не выводится, замена производится всегда.">
+    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Замена иконки трея.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/constants.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/controller.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SRC/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/main_window.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SRC/system_tray.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/system_tray.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/debug.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/try_log.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/try_log.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/windows_hotkeys.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/windows_hotkeys.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -176,7 +179,15 @@
       <option name="project" value="LOCAL" />
       <updated>1775823024486</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Замена иконки трея.">
+      <option name="closed" value="true" />
+      <created>1778750258581</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1778750258581</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -199,6 +210,18 @@
     <MESSAGE value="Перед созданием EXE" />
     <MESSAGE value="Переработана реакция на выделение пустого объекта" />
     <MESSAGE value="Добавлен параметр CLI: --fast. Если параметр не задать программа работает по-прежнему.&#10;При заданном параметре диалоговое окно замены регистра не выводится, замена производится всегда." />
-    <option name="LAST_COMMIT_MESSAGE" value="Добавлен параметр CLI: --fast. Если параметр не задать программа работает по-прежнему.&#10;При заданном параметре диалоговое окно замены регистра не выводится, замена производится всегда." />
+    <MESSAGE value="Замена иконки трея." />
+    <option name="LAST_COMMIT_MESSAGE" value="Замена иконки трея." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/SRC/constants.py</url>
+          <line>12</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

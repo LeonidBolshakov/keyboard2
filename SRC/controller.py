@@ -82,4 +82,8 @@ class Controller:
         # llk.press_ctrl_and(vk, delay_sec)
 
     def cleanup(self):
+        if self.llk_hook is not None:
+            self.llk_hook.uninstall()
+            self.llk_hook = None
+
         self.hw.cleanup()
