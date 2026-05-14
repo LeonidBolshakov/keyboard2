@@ -1,4 +1,4 @@
-# -*- mode: python ; coding: utf-8 -*-
+﻿# -*- mode: python ; coding: utf-8 -*-
 
 import os
 
@@ -6,7 +6,7 @@ a = Analysis(
     ['SRC\\keyboard2.py'],
     pathex=[os.path.abspath('SRC')],
     binaries=[],
-    datas=[('_internal/dialogue.ui', '_internal')],
+    datas=[('_internal/dialogue.ui', '_internal'), ('try_icon.png', '.')],
     hiddenimports=['dotenv', 'customtextedit'],
     hookspath=['.'],
     hooksconfig={},
@@ -39,3 +39,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
 )
+

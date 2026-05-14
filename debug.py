@@ -31,7 +31,7 @@ press_ctrl_and_vk(VK_V, ms)
 
 import time, ctypes
 from ctypes import wintypes
-from typing import Iterable, SupportsFloat, SupportsInt, Sequence
+from typing import SupportsFloat, SupportsInt, Sequence
 
 user32 = ctypes.WinDLL("user32", use_last_error=True)
 
@@ -130,7 +130,7 @@ user32.SendInput.restype = wintypes.UINT
 user32.GetClipboardSequenceNumber.restype = wintypes.DWORD
 
 
-def _vk(vk: int, flags: int = 0) -> None:
+def _vk(vk: int, flags: int = 0) -> INPUT:
     """
     Формирует INPUT для клавиатурного события по виртуальному коду (VK).
 
@@ -150,7 +150,7 @@ def _vk(vk: int, flags: int = 0) -> None:
     return i
 
 
-def _send(seq: Iterable[INPUT]) -> None:
+def _send(seq: Sequence[INPUT]) -> None:
     """
     Вспомогательная отправка массива INPUT через SendInput с проверкой результата.
 

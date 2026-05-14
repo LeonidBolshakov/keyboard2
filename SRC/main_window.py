@@ -203,20 +203,22 @@ class MainWindow(QMainWindow):
             return
 
         self.info_start_dialog()
-        cplipboard_text = self.get_text_from_clipboard()  # Читаем буфер обмена
+        clipboard_text = self.get_text_from_clipboard()  # Читаем буфер обмена
 
         if self.fast_mode:
-            f.put_text_to_clipboard(
-                ReplaceText().swap_keyboard_register(cplipboard_text)
-            )
+            if clipboard_text:
+                f.put_text_to_clipboard(
+                    ReplaceText().swap_keyboard_register(clipboard_text)
+                )
             f.replace_selected_text_and_register()
             return
 
         # Отрисовка/обновление UI
         try:
-            self.show_original_text(cplipboard_text)
-            self.change_original_text()
-            self.display_window()
+            if clipboard_text is not None:
+                self.show_original_text(clipboard_text)
+                self.change_original_text()
+                self.display_window()
         except Exception as e:
             logger.warning(C.TEXT_ERROR_ORIGINAL_TEXT.format(e=e))
 

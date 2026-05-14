@@ -16,9 +16,11 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-from PyQt6 import QtWidgets
+from PyQt6 import QtWidgets, QtGui
+
 
 from SRC.constants import C
+from SRC.functions import get_exe_directory
 
 
 class Tray(QtWidgets.QSystemTrayIcon):
@@ -48,7 +50,7 @@ class Tray(QtWidgets.QSystemTrayIcon):
         Дополнительные элементы меню вида {"Название": функция}.
         """
         super().__init__(app)  # базовый конструктор
-        self._create_icon(app)
+        self._create_icon()
         menu = self._create_menu(on_quit, actions)
         self.setContextMenu(menu)
         self.setVisible(True)
@@ -82,19 +84,18 @@ class Tray(QtWidgets.QSystemTrayIcon):
             if quit_action:
                 quit_action.triggered.connect(on_quit)
         except Exception as e:
-            logger.error(C.TEXT_ERROR_CONNECT_SIGNAL)
-        finally:
-            return menu
+            logger.exception(C.TEXT_ERROR_CONNECT_SIGNAL)
 
-    def _create_icon(self, app: QtWidgets.QApplication) -> None:
+        return menu
+
+    def _create_icon(self) -> None:
         """
         Создание иконки меню
 
-        :param app: QApplication
+        :param Нет
 
         :return: None
         """
-        style = app.style()
-        if style is not None:
-            icon = style.standardIcon(QtWidgets.QStyle.StandardPixmap.SP_ComputerIcon)
-            self.setIcon(icon)
+        icon_path = get_exe_directory() / "try_icon.png"
+        self.setIcon(QtGui.QIcon(str(icon_path)))
+        self.show()

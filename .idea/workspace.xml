@@ -7,8 +7,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Переработана реакция на выделение пустого объекта">
+    <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Добавлен параметр CLI: --fast. Если параметр не задать программа работает по-прежнему.&#10;При заданном параметре диалоговое окно замены регистра не выводится, замена производится всегда.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/main_window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/system_tray.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/system_tray.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/debug.py" beforeDir="false" afterPath="$PROJECT_DIR$/debug.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -84,7 +88,7 @@
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <option name="SCRIPT_NAME" value="SRC/keyboard2.py" />
-      <option name="PARAMETERS" value="" />
+      <option name="PARAMETERS" value="--fast" />
       <option name="SHOW_COMMAND_LINE" value="false" />
       <option name="EMULATE_TERMINAL" value="false" />
       <option name="MODULE_MODE" value="false" />
@@ -164,7 +168,15 @@
       <option name="project" value="LOCAL" />
       <updated>1774342928063</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Добавлен параметр CLI: --fast. Если параметр не задать программа работает по-прежнему.&#10;При заданном параметре диалоговое окно замены регистра не выводится, замена производится всегда.">
+      <option name="closed" value="true" />
+      <created>1775823024486</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1775823024486</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -186,6 +198,7 @@
     <MESSAGE value="Убрал лишние сообщения логирования" />
     <MESSAGE value="Перед созданием EXE" />
     <MESSAGE value="Переработана реакция на выделение пустого объекта" />
-    <option name="LAST_COMMIT_MESSAGE" value="Переработана реакция на выделение пустого объекта" />
+    <MESSAGE value="Добавлен параметр CLI: --fast. Если параметр не задать программа работает по-прежнему.&#10;При заданном параметре диалоговое окно замены регистра не выводится, замена производится всегда." />
+    <option name="LAST_COMMIT_MESSAGE" value="Добавлен параметр CLI: --fast. Если параметр не задать программа работает по-прежнему.&#10;При заданном параметре диалоговое окно замены регистра не выводится, замена производится всегда." />
   </component>
 </project>
