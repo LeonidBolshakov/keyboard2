@@ -9,13 +9,8 @@
   <component name="ChangeListManager">
     <list default="true" id="a8c8f618-ea1c-426c-be26-6a2c050fec83" name="Changes" comment="Замена иконки трея.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/constants.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/constants.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/controller.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/controller.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/main_window.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/main_window.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SRC/app.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SRC/system_tray.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/system_tray.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/try_log.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/try_log.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SRC/windows_hotkeys.py" beforeDir="false" afterPath="$PROJECT_DIR$/SRC/windows_hotkeys.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

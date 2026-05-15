@@ -142,11 +142,15 @@ class StartApp(QObject):
 
     def create_tray(self) -> None:
         """Создаёт системный трей и регистрирует действия меню."""
+        start_dialog_action_text = "Вызов диалога"
         try:
             Tray(
                 self.app,
                 on_quit=QtWidgets.QApplication.quit,
-                actions={"Вызов диалога": self.ui.start_dialog},
+                actions={start_dialog_action_text: self.ui.start_dialog},
+                disabled_actions=(
+                    {start_dialog_action_text} if self.ui.fast_mode else set()
+                ),
             )
         except Exception as e:
             logger.warning(C.TEXT_ERROR_TRAY.format(e=e))

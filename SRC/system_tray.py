@@ -37,6 +37,7 @@ class Tray(QtWidgets.QSystemTrayIcon):
         app: QtWidgets.QApplication,
         on_quit: Callable[[], None],
         actions: dict[str, Callable[[], None]],
+        disabled_actions: set[str] | None = None,
     ):
         """Создаёт трей, меню и задаёт иконку.
 
@@ -48,15 +49,19 @@ class Tray(QtWidgets.QSystemTrayIcon):
         Обработчик выхода.
         actions : dict[str, Callable[[], None]]
         Дополнительные элементы меню вида {"Название": функция}.
+        disabled_actions: Названия пунктов меню, которые создаются, но отключаются.
         """
         super().__init__(app)  # базовый конструктор
         self._create_icon()
-        menu = self._create_menu(on_quit, actions)
+        menu = self._create_menu(on_quit, actions, disabled_actions or set())
         self.setContextMenu(menu)
         self.setVisible(True)
 
     def _create_menu(
-        self, on_quit: Callable[[], None], actions: dict[str, Callable[[], None]]
+        self,
+        on_quit: Callable[[], None],
+        actions: dict[str, Callable[[], None]],
+        disabled_actions: set[str],
     ) -> QtWidgets.QMenu:
         """
         Создание меню трея
@@ -74,6 +79,9 @@ class Tray(QtWidgets.QSystemTrayIcon):
             act = menu.addAction(text)
             try:
                 if not act:
+                    continue
+                if text in disabled_actions:
+                    act.setEnabled(False)
                     continue
                 act.triggered.connect(lambda checked=False, h=handler: h())
             except Exception as e:
