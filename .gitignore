@@ -10,3 +10,5 @@ build/
 
 .env
 *.log
+results.csv
+debug.py
