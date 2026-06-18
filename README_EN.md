@@ -1,6 +1,6 @@
 # Keyboard2
 
-[Русский](readmy.md)
+[Русский](README.md)
 
 **Keyboard2** is a Windows utility for switching keyboard layout with a single key and fixing text typed in the wrong layout.
 

@@ -1,6 +1,6 @@
 # Keyboard2
 
-[English](readmy_en.md)
+[English](README_EN.md)
 
 **Keyboard2** - Windows-утилита для переключения раскладки одной клавишей и исправления текста, набранного не в той раскладке.
 
