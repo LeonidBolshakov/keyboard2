@@ -64,14 +64,14 @@ ghbdsn
 ```env
 e-mail=user@example.com
 telephone=+7 000 000-00-00
-signature=С уважением,
-Имя Фамилия
+signature=С уважением,\nИмя Фамилия
 calculator=C:\Windows\System32\calc.exe
 console_log_level=INFO
 file_log_level_info=DEBUG
+file_log_path=C:\Temp\keyboard2.log
 ```
 
-Перед публикацией проекта настоящий `.env` не должен попадать в репозиторий. Для примера лучше использовать файл `.env.example`.
+Настоящий `.env` не должен попадать в репозиторий. Для публичного примера в проекте есть файл `.env.example`.
 
 ## Запуск из исходного кода
 
@@ -144,7 +144,6 @@ pyinstaller keyboard2.spec
 Проект готовится к публикации в портфолио. Планируемые улучшения:
 
 - добавить GIF-демонстрацию;
-- добавить `.env.example`;
 - разделить runtime- и dev-зависимости;
 - добавить тесты для логики замены текста;
 - добавить `pyproject.toml` с настройками форматирования и проверки типов;

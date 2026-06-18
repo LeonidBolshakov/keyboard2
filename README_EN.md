@@ -64,14 +64,14 @@ Example `.env`:
 ```env
 e-mail=user@example.com
 telephone=+7 000 000-00-00
-signature=Best regards,
-First Last
+signature=Best regards,\nFirst Last
 calculator=C:\Windows\System32\calc.exe
 console_log_level=INFO
 file_log_level_info=DEBUG
+file_log_path=C:\Temp\keyboard2.log
 ```
 
-The real `.env` file should not be committed to the repository. Use `.env.example` for public examples.
+The real `.env` file should not be committed to the repository. The project includes `.env.example` as a public example.
 
 ## Run From Source
 
@@ -143,7 +143,6 @@ The project uses:
 
 This project is being prepared for a portfolio publication. Planned improvements:
 
-- add `.env.example`;
 - split runtime and development dependencies;
 - add tests for text replacement logic;
 - add `pyproject.toml` with formatting and type-checking settings;
