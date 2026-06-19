@@ -159,7 +159,7 @@ class HotkeyFilter(QtCore.QAbstractNativeEventFilter):
 
     def nativeEventFilter(
         self,
-        eventType: (
+        _eventType: (
             QByteArray | bytes | bytearray | memoryview
         ),  # расширенный тип, как у базового,
         message: voidptr | None,
@@ -168,7 +168,7 @@ class HotkeyFilter(QtCore.QAbstractNativeEventFilter):
 
         Параметры
         ---------
-        eventType : Any
+        _eventType : Any
             Тип нативного события (на Windows — строка вида "windows_*", не используется)
         message : int
             Указатель на структуру `MSG` WinAPI, приводится через `from_address`

@@ -35,7 +35,7 @@ class LibKeyboard:
                 for m in ("ctrl", "alt", "shift", "windows"):
                     try:
                         release(m)
-                    except:
+                    except Exception:
                         pass
                 time.sleep(0.03)
 

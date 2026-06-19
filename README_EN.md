@@ -28,14 +28,14 @@ I built this tool to remove several frustrating keyboard workflows from my daily
 
 ## Hotkeys
 
-| Hotkey | Action |
-| --- | --- |
-| `Caps Lock` | Switch keyboard layout |
-| `Scroll Lock` | Fix selected text typed in the wrong layout |
-| `Ctrl+F3` | Insert e-mail from settings |
-| `Ctrl+F4` | Insert phone number from settings |
-| `Ctrl+F5` | Launch a selected external program, for example a custom calculator |
-| `Ctrl+F9` | Insert signature from settings |
+| Hotkey        | Action                                                              |
+| ------------- | ------------------------------------------------------------------- |
+| `Caps Lock`   | Switch keyboard layout                                              |
+| `Scroll Lock` | Fix selected text typed in the wrong layout                         |
+| `Ctrl+F3`     | Insert e-mail from settings                                         |
+| `Ctrl+F4`     | Insert phone number from settings                                   |
+| `Ctrl+F5`     | Launch a selected external program, for example a custom calculator |
+| `Ctrl+F9`     | Insert signature from settings                                      |
 
 ## Example
 

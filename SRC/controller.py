@@ -53,7 +53,7 @@ class Controller:
         self.llk_hook.install()
 
     @log_exceptions
-    def on_hotkey(self, hk_id: int, vk: int, mods: int):
+    def on_hotkey(self, _hk_id: int, vk: int, _mods: int) -> None:
         """
         Обработчик нажатий системных горячих клавиш.
 
