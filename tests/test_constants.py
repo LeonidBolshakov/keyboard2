@@ -9,7 +9,7 @@ def test_constants_are_read_only() -> None:
     except AttributeError as exc:
         assert "Нельзя менять константу CONSOLE_LOG_LEVEL" in str(exc)
     else:
-        raise AssertionError("Constants object must reject attribute assignment")
+        raise AssertionError("Константы нельзя изменять")
 
 
 def test_logging_level_names_are_mapped_to_logging_codes() -> None:

@@ -1,29 +1,16 @@
-import os
-
 from SRC.get_variable import Variables
 
 
-def test_get_var_returns_environment_value() -> None:
-    name = "KEYBOARD2_TEST_VALUE"
-    old_value = os.environ.get(name)
-    os.environ[name] = "from-env"
-    try:
-        assert Variables().get_var(name, "default") == "from-env"
-    finally:
-        if old_value is None:
-            os.environ.pop(name, None)
-        else:
-            os.environ[name] = old_value
+def test_get_var_returns_environment_value(monkeypatch) -> None:
+    monkeypatch.setenv("KEYBOARD2_TEST_VALUE", "from-env")
+
+    assert Variables().get_var("KEYBOARD2_TEST_VALUE", "default") == "from-env"
 
 
-def test_get_var_returns_default_for_missing_value() -> None:
-    name = "KEYBOARD2_TEST_MISSING_VALUE"
-    old_value = os.environ.pop(name, None)
-    try:
-        assert Variables().get_var(name, "default") == "default"
-    finally:
-        if old_value is not None:
-            os.environ[name] = old_value
+def test_get_var_returns_default_for_missing_value(monkeypatch) -> None:
+    monkeypatch.delenv("KEYBOARD2_TEST_MISSING_VALUE", raising=False)
+
+    assert Variables().get_var("KEYBOARD2_TEST_MISSING_VALUE", "default") == "default"
 
 
 def test_get_var_rejects_non_string_name() -> None:
@@ -32,7 +19,7 @@ def test_get_var_rejects_non_string_name() -> None:
     except TypeError as exc:
         assert "Первый параметр 123" in str(exc)
     else:
-        raise AssertionError("get_var must reject non-string variable names")
+        raise AssertionError("Имя переменной окружения должно быть строкой")
 
 
 def test_get_var_rejects_non_string_default() -> None:
@@ -41,4 +28,4 @@ def test_get_var_rejects_non_string_default() -> None:
     except TypeError as exc:
         assert "Второй параметр 123" in str(exc)
     else:
-        raise AssertionError("get_var must reject non-string defaults")
+        raise AssertionError("Значение по умолчанию должно быть строкой")
