@@ -1,4 +1,6 @@
-from SRC.windows_hotkeys import HI_WORD, LO_WORD
+import pytest
+
+from SRC.windows_hotkeys import HI_WORD, LO_WORD, HotkeysWin
 
 
 def test_lo_word_returns_low_16_bits() -> None:
@@ -20,3 +22,38 @@ def test_lo_word_and_hi_word_split_hotkey_lparam() -> None:
 
     assert LO_WORD(lparam) == modifiers
     assert HI_WORD(lparam) == virtual_key
+
+
+def test_prepare_mods_normalizes_string_and_adds_norepeat() -> None:
+    hotkeys = HotkeysWin()
+
+    assert hotkeys._prepare_mods(" Control  shift control ") == [
+        "control",
+        "shift",
+        "norepeat",
+    ]
+
+
+def test_prepare_mods_normalizes_iterable_and_keeps_order() -> None:
+    hotkeys = HotkeysWin()
+
+    assert hotkeys._prepare_mods(["ALT", "control", "alt"]) == [
+        "alt",
+        "control",
+        "norepeat",
+    ]
+
+
+def test_mods_to_mask_combines_modifiers() -> None:
+    hotkeys = HotkeysWin()
+
+    assert hotkeys.mods_to_mask(["control", "shift", "norepeat"]) == (
+        HotkeysWin.MOD_CONTROL | HotkeysWin.MOD_SHIFT | HotkeysWin.MOD_NOREPEAT
+    )
+
+
+def test_mods_to_mask_rejects_unknown_modifier() -> None:
+    hotkeys = HotkeysWin()
+
+    with pytest.raises(KeyError):
+        hotkeys.mods_to_mask(["control", "unknown"])
