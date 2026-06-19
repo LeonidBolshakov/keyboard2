@@ -30,7 +30,7 @@ def test_swap_keyboard_register_converts_every_english_mapping() -> None:
     assert replacer.swap_keyboard_register(source) == expected
 
 
-def test_swap_keyboard_register_converts_unique_non_ambiguous_russian_symbols_back() -> None:
+def test_converts_non_ambiguous_russian_symbols_back() -> None:
     replacer = ReplaceText()
     reverse_mapping = {
         value: key for key, value in en_to_ru.items() if value not in en_to_ru
@@ -45,4 +45,6 @@ def test_swap_keyboard_register_is_reversible_for_regular_letters() -> None:
     replacer = ReplaceText()
     text = "Привет, keyboard"
 
-    assert replacer.swap_keyboard_register(replacer.swap_keyboard_register(text)) == text
+    assert (
+        replacer.swap_keyboard_register(replacer.swap_keyboard_register(text)) == text
+    )
