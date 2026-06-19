@@ -101,13 +101,25 @@ pyinstaller keyboard2.spec
 
 The executable will be created in the `dist` directory.
 
-## Tests
+## Checks
 
-Install development dependencies and run `pytest`:
+Install development dependencies before running tests and checks:
 
 ```powershell
 pip install -r requirements-dev.txt
+```
+
+Run tests:
+
+```powershell
 pytest
+```
+
+Check formatting and types:
+
+```powershell
+black --check SRC tests
+mypy
 ```
 
 ## Architecture
@@ -153,5 +165,4 @@ The project uses:
 
 This project is being prepared for a portfolio publication. Planned improvements:
 
-- add `pyproject.toml` with formatting and type-checking settings;
 - configure GitHub Actions for project checks.
