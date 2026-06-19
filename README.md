@@ -75,7 +75,7 @@ file_log_path=C:\Temp\keyboard2.log
 
 ## Запуск из исходного кода
 
-Проект рассчитан на Windows.
+Проект рассчитан на Windows. Для обычного запуска используются runtime-зависимости из `requirements.txt`.
 
 ```powershell
 python -m venv .venv
@@ -92,9 +92,10 @@ python .\SRC\keyboard2.py --fast
 
 ## Сборка EXE
 
-В проекте есть файл `keyboard2.spec` для сборки через PyInstaller.
+Инструменты разработки и сборки вынесены в `requirements-dev.txt`. В проекте есть файл `keyboard2.spec` для сборки через PyInstaller.
 
 ```powershell
+pip install -r requirements-dev.txt
 pyinstaller keyboard2.spec
 ```
 
@@ -144,7 +145,6 @@ pyinstaller keyboard2.spec
 Проект готовится к публикации в портфолио. Планируемые улучшения:
 
 - добавить GIF-демонстрацию;
-- разделить runtime- и dev-зависимости;
 - добавить тесты для логики замены текста;
 - добавить `pyproject.toml` с настройками форматирования и проверки типов;
 - настроить GitHub Actions для проверки проекта.

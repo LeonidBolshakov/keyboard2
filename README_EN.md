@@ -75,7 +75,7 @@ The real `.env` file should not be committed to the repository. The project incl
 
 ## Run From Source
 
-The project is intended for Windows.
+The project is intended for Windows. Runtime dependencies are kept in `requirements.txt`.
 
 ```powershell
 python -m venv .venv
@@ -92,9 +92,10 @@ python .\SRC\keyboard2.py --fast
 
 ## Build EXE
 
-The project includes `keyboard2.spec` for PyInstaller builds.
+Development and build tools are kept in `requirements-dev.txt`. The project includes `keyboard2.spec` for PyInstaller builds.
 
 ```powershell
+pip install -r requirements-dev.txt
 pyinstaller keyboard2.spec
 ```
 
@@ -143,7 +144,6 @@ The project uses:
 
 This project is being prepared for a portfolio publication. Planned improvements:
 
-- split runtime and development dependencies;
 - add tests for text replacement logic;
 - add `pyproject.toml` with formatting and type-checking settings;
 - configure GitHub Actions for project checks.
