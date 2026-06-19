@@ -101,6 +101,15 @@ pyinstaller keyboard2.spec
 
 The executable will be created in the `dist` directory.
 
+## Tests
+
+Install development dependencies and run `pytest`:
+
+```powershell
+pip install -r requirements-dev.txt
+pytest
+```
+
 ## Architecture
 
 The project is split into focused modules:
@@ -144,6 +153,5 @@ The project uses:
 
 This project is being prepared for a portfolio publication. Planned improvements:
 
-- add tests for text replacement logic;
 - add `pyproject.toml` with formatting and type-checking settings;
 - configure GitHub Actions for project checks.

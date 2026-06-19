@@ -11,3 +11,4 @@ build/
 .env
 *.log
 debug.py
+.pytest_cache/
