@@ -1,3 +1,5 @@
+import pytest
+
 from SRC.get_variable import Variables
 
 
@@ -14,18 +16,10 @@ def test_get_var_returns_default_for_missing_value(monkeypatch) -> None:
 
 
 def test_get_var_rejects_non_string_name() -> None:
-    try:
+    with pytest.raises(TypeError, match="Первый параметр 123"):
         Variables().get_var(123, "default")  # type: ignore[arg-type]
-    except TypeError as exc:
-        assert "Первый параметр 123" in str(exc)
-    else:
-        raise AssertionError("Имя переменной окружения должно быть строкой")
 
 
 def test_get_var_rejects_non_string_default() -> None:
-    try:
+    with pytest.raises(TypeError, match="Второй параметр 123"):
         Variables().get_var("KEYBOARD2_TEST_VALUE", 123)  # type: ignore[arg-type]
-    except TypeError as exc:
-        assert "Второй параметр 123" in str(exc)
-    else:
-        raise AssertionError("Значение по умолчанию должно быть строкой")
