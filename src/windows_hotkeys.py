@@ -163,7 +163,7 @@ class HotkeyFilter(QtCore.QAbstractNativeEventFilter):
             QByteArray | bytes | bytearray | memoryview
         ),  # расширенный тип, как у базового,
         message: voidptr | None,
-    ) -> tuple[bool, voidptr | None]:
+    ) -> tuple[bool, voidptr]:
         """Перехватывает нативные события и отбирает только `WM_HOTKEY`.
 
         Параметры

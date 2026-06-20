@@ -6,7 +6,7 @@ constants.py — неизменяемые константы.
 - Предоставляет «только чтение» через объект C, чтобы избежать случайной перезаписи.
 
 Использование:
-    from SRC.constants import C
+    from src.constants import C
     level_name = C.CONSOLE_LOG_LEVEL_DEF
 """
 
@@ -27,9 +27,14 @@ class _Const:
     """
 
     # --- Ключи конфигурации / имена переменных окружения
-    CONSOLE_LOG_LEVEL: str = "console_log_level"
-    FILE_LOG_LEVEL: str = "file_log_level_info"  # Уровень логирования в файл
-    FILE_LOG_PATH: str = "file_log_path"  # путь файла логирования
+    CONSOLE_LOG_LEVEL: str = "CONSOLE_LOG_LEVEL"
+    FILE_LOG_LEVEL: str = "FILE_LOG_LEVEL_INFO"  # Уровень логирования в файл
+    FILE_LOG_PATH: str = "FILE_LOG_PATH"  # путь файла логирования
+
+    EMAIL: str = "EMAIL"
+    TELEPHONE: str = "TELEPHONE"
+    SIGNATURE: str = "SIGNATURE"
+    CALCULATOR: str = "CALCULATOR"
 
     # --- Значения по умолчанию
     CONSOLE_LOG_LEVEL_DEF: str = "INFO"
@@ -112,7 +117,7 @@ class _Const:
     MIN_WIDTH_BUTTON = 170  # Минимальная ширина первых двух кнопок
     QSS_BUTTON = "font-weight: bold; font-size: 12pt; "
     QSS_NO = "color: blue"
-    QSS_TEXT = "color: mediumblue"  # Силь текстовых полей диалога
+    QSS_TEXT = "color: mediumblue"  # Стиль текстовых полей диалога
     QSS_YES = "color: blue"
     TEXT_CANCEL_BUTTON = "Выгрузить программу\nНажми 3"
     TEXT_NO_BUTTON = "Не заменять\nНажми 2/Esc"

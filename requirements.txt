@@ -1,7 +1,7 @@
 keyboard==0.13.5
 PyGetWindow==0.0.9
-PyQt6==6.9.1
-PyQt6-Qt6==6.9.2
-PyQt6_sip==13.10.2
+PyQt6==6.11.0
+PyQt6-Qt6==6.11.1
+PyQt6_sip==13.11.1
 PyRect==0.2.0
 python-dotenv==1.2.2

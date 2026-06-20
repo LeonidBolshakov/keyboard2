@@ -1,7 +1,8 @@
 import logging
+from typing import Any, cast
 
-from SRC.constants import C
-from SRC.tune_logger import TuneLogger
+from src.constants import C
+from src.tune_logger import TuneLogger
 
 
 class FakeVariables:
@@ -14,7 +15,7 @@ class FakeVariables:
 
 def make_logger_with_env(values: dict[str, object]) -> TuneLogger:
     logger = object.__new__(TuneLogger)
-    logger.variables = FakeVariables(values)
+    cast(Any, logger).variables = FakeVariables(values)
     return logger
 
 

@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 
 from keyboard import send, release, write
 
-from SRC.constants import _Const as C
+from src.constants import _Const as C
 
 
 class LibKeyboard:
@@ -14,7 +14,7 @@ class LibKeyboard:
         Эмулирует набор текста с помощью библиотеки `keyboard`.
 
         Аргументы:
-            text: Строка для вывода. Подстрока ``"\\n"`` заменяется на перевод строки.
+            text: Строка для вывода. Подстрока \\n заменяется на перевод строки.
 
         Поведение:
             - Перед выводом пытается отпустить модификаторы (Ctrl, Alt, Shift, Win),

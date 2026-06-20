@@ -30,10 +30,11 @@
 from pathlib import Path
 import logging, multiprocessing
 from logging.handlers import RotatingFileHandler
+from typing import Any
 
-from SRC.get_variable import Variables
-import SRC.try_log as try_log
-from SRC.constants import C
+from src.get_variable import Variables
+import src.try_log as try_log
+from src.constants import C
 
 logger = logging.getLogger(__name__)
 
@@ -65,7 +66,7 @@ class TuneLogger:
 
     def __init__(self):
         self.variables = Variables()
-        self.queue = multiprocessing.Queue(-1)
+        self.queue: multiprocessing.Queue[Any] = multiprocessing.Queue(-1)
         self.console_handler = logging.StreamHandler()
         self.file_handler = self._create_file_handler()
 

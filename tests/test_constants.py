@@ -1,6 +1,6 @@
 import logging
 
-from SRC.constants import C
+from src.constants import C
 
 
 def test_constants_are_read_only() -> None:

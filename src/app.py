@@ -15,8 +15,8 @@
 Зависимости
 -----------
 - PyQt6
-- Внутренние модули: ``SRC.constants``, ``SRC.system_tray``, ``SRC.single_instance``,
-  ``SRC.UI.main_window``, ``SRC.controller``, ``SRC.hotkey_win``.
+- Внутренние модули: ``src.constants``, ``src.system_tray``, ``src.single_instance``,
+  ``src.UI.main_window``, ``src.controller``, ``src.hotkey_win``.
 
 Примечание по завершению
 ------------------------
@@ -36,14 +36,14 @@ logger = logging.getLogger(__name__)
 
 from PyQt6 import QtWidgets
 
-import SRC.functions as f
-from SRC.system_tray import Tray
-from SRC.single_instance import SingleInstance
-from SRC.main_window import MainWindow
-from SRC.windows_hotkeys import HotkeyFilter
-from SRC.controller import Controller
-from SRC.try_log import log_exceptions
-from SRC.constants import C
+import src.functions as f
+from src.system_tray import Tray
+from src.single_instance import SingleInstance
+from src.main_window import MainWindow
+from src.windows_hotkeys import HotkeyFilter
+from src.controller import Controller
+from src.try_log import log_exceptions
+from src.constants import C
 
 
 class StartApp(QObject):

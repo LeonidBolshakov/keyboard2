@@ -2,9 +2,9 @@ from PyQt6.QtWidgets import QTextEdit
 from PyQt6.QtGui import QKeyEvent
 from PyQt6.QtCore import Qt
 
-from SRC.signals import signals_bus
-from SRC.try_log import log_exceptions
-from SRC.constants import C
+from src.signals import signals_bus
+from src.try_log import log_exceptions
+from src.constants import C
 
 
 class CustomTextEdit(QTextEdit):

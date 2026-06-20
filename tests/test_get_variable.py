@@ -1,6 +1,6 @@
 import pytest
 
-from SRC.get_variable import Variables
+from src.get_variable import Variables
 
 
 def test_get_var_returns_environment_value(monkeypatch) -> None:

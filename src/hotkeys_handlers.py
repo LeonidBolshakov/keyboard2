@@ -1,12 +1,12 @@
 import subprocess
 import logging
 
-from SRC.try_log import log_exceptions
-from SRC.signals import signals_bus
-from SRC.get_variable import Variables
-from SRC.ll_keyboard import Keys
-from SRC.lib_keyboard import LibKeyboard
-from SRC.constants import C
+from src.try_log import log_exceptions
+from src.signals import signals_bus
+from src.get_variable import Variables
+from src.ll_keyboard import Keys
+from src.lib_keyboard import LibKeyboard
+from src.constants import C
 
 logger = logging.getLogger(__name__)
 
@@ -51,16 +51,16 @@ class HotkeysHandlers:
     @log_exceptions(C.TEXT_ERROR_SEND_EMAIL)
     def send_mail(self) -> None:
         """Вставляет адрес e-mail в текущее активное окно, если переменная определена."""
-        self.write_var("e-mail")
+        self.write_var(C.EMAIL)
 
     @log_exceptions(C.TEXT_ERROR_SEND_TELEPHONE)
     def send_telephone(self) -> None:
         """Вставляет телефон в активное окно, если переменная определена."""
-        self.write_var("telephone")
+        self.write_var(C.TELEPHONE)
 
     def run_calculator(self) -> None:
-        """Запускает внешний калькулятор по пути из переменной calculator."""
-        if calculator := self.vars.get_var("calculator"):
+        """Запускает внешний калькулятор по пути из переменной CALCULATOR."""
+        if calculator := self.vars.get_var(C.CALCULATOR):
             try:
                 subprocess.Popen([calculator])
             except OSError as e:
@@ -71,7 +71,7 @@ class HotkeysHandlers:
     @log_exceptions(C.TEXT_ERROR_SEND_SIGNATURE)
     def send_signature(self) -> None:
         """Вставляет две строки подписи."""
-        self.write_var("signature")
+        self.write_var(C.SIGNATURE)
 
     def change_register(self) -> None:
         self.lib_kbd.send_key("alt+shift")

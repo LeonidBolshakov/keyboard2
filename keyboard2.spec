@@ -1,10 +1,8 @@
-﻿# -*- mode: python ; coding: utf-8 -*-
-
-import os
+﻿import os
 
 a = Analysis(
-    ['SRC\\keyboard2.py'],
-    pathex=[os.path.abspath('SRC')],
+    ['src\\keyboard2.py'],
+    pathex=[os.path.abspath('src')],
     binaries=[],
     datas=[('_internal/dialogue.ui', '_internal'), ('try_icon.png', '.')],
     hiddenimports=['dotenv', 'customtextedit'],

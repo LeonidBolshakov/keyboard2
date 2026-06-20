@@ -14,13 +14,13 @@ from PyQt6.QtCore import Qt, QTimer, QCoreApplication, pyqtBoundSignal
 
 from PyQt6.QtWidgets import QMainWindow, QDialogButtonBox, QPushButton, QMessageBox
 
-from SRC.signals import signals_bus
-from SRC.replacetext import ReplaceText
-from SRC.customtextedit import CustomTextEdit
-from SRC.controller import Controller
-from SRC.try_log import log_exceptions
-import SRC.functions as f
-from SRC.constants import C
+from src.signals import signals_bus
+from src.replacetext import ReplaceText
+from src.customtextedit import CustomTextEdit
+from src.controller import Controller
+from src.try_log import log_exceptions
+import src.functions as f
+from src.constants import C
 
 
 class DialogResult(IntEnum):
@@ -98,10 +98,14 @@ class MainWindow(QMainWindow):
 
     def init_buttons(self):
         """Присваиваем значения переменным программы"""
-        self.yes_button = self.buttonBox.button(QDialogButtonBox.StandardButton.Yes)
-        self.no_button = self.buttonBox.button(QDialogButtonBox.StandardButton.No)
-        self.cancel_button = self.buttonBox.button(
-            QDialogButtonBox.StandardButton.Cancel
+        self.yes_button = self.ensure_button(
+            self.buttonBox.button(QDialogButtonBox.StandardButton.Yes)
+        )
+        self.no_button = self.ensure_button(
+            self.buttonBox.button(QDialogButtonBox.StandardButton.No)
+        )
+        self.cancel_button = self.ensure_button(
+            self.buttonBox.button(QDialogButtonBox.StandardButton.Cancel)
         )
 
     @log_exceptions(C.TEXT_ERROR_CONNECT)
@@ -319,3 +323,9 @@ class MainWindow(QMainWindow):
         parser.add_argument("--fast", action="store_true")
 
         return parser.parse_args().fast
+
+    def ensure_button(self, button: QPushButton | None) -> QPushButton:
+        if button is not None:
+            return button
+
+        raise RuntimeError(C.TEXT_ERROR_CUSTOM_UI)

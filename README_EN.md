@@ -28,14 +28,12 @@ I built this tool to remove several frustrating keyboard workflows from my daily
 
 ## Hotkeys
 
-| Hotkey        | Action                                                              |
-| ------------- | ------------------------------------------------------------------- |
-| `Caps Lock`   | Switch keyboard layout                                              |
-| `Scroll Lock` | Fix selected text typed in the wrong layout                         |
-| `Ctrl+F3`     | Insert e-mail from settings                                         |
-| `Ctrl+F4`     | Insert phone number from settings                                   |
-| `Ctrl+F5`     | Launch a selected external program, for example a custom calculator |
-| `Ctrl+F9`     | Insert signature from settings                                      |
+- `Caps Lock` - switch keyboard layout.
+- `Scroll Lock` - fix selected text typed in the wrong layout.
+- `Ctrl+F3` - insert e-mail from settings.
+- `Ctrl+F4` - insert phone number from settings.
+- `Ctrl+F5` - launch a selected external program, for example a custom calculator.
+- `Ctrl+F9` - insert signature from settings.
 
 ## Example
 
@@ -62,13 +60,13 @@ The application reads user values from `.env` through `python-dotenv`.
 Example `.env`:
 
 ```env
-e-mail=user@example.com
-telephone=+7 000 000-00-00
-signature=Best regards,\nFirst Last
-calculator=C:\Windows\System32\calc.exe
-console_log_level=INFO
-file_log_level_info=DEBUG
-file_log_path=C:\Temp\keyboard2.log
+EMAIL=user@example.com
+TELEPHONE="+7 000 000-00-00"
+SIGNATURE="Best regards,\nFirst Last"
+CALCULATOR=C:\Windows\System32\calc.exe
+CONSOLE_LOG_LEVEL=INFO
+FILE_LOG_LEVEL_INFO=DEBUG
+FILE_LOG_PATH=C:\Temp\keyboard2.log
 ```
 
 The real `.env` file should not be committed to the repository. The project includes `.env.example` as a public example.
@@ -81,13 +79,13 @@ The project is intended for Windows. Runtime dependencies are kept in `requireme
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
-python .\SRC\keyboard2.py
+python .\src\keyboard2.py
 ```
 
 Fast mode:
 
 ```powershell
-python .\SRC\keyboard2.py --fast
+python .\src\keyboard2.py --fast
 ```
 
 ## Build EXE
@@ -118,7 +116,7 @@ pytest
 Check formatting and types:
 
 ```powershell
-black --check SRC tests
+black --check src tests
 mypy
 ```
 
@@ -126,18 +124,18 @@ mypy
 
 The project is split into focused modules:
 
-- `SRC/keyboard2.py` - application entry point, logging setup, and top-level exception handling.
-- `SRC/app.py` - PyQt6 application lifecycle, system tray, hotkey registration, and single-instance guard.
-- `SRC/main_window.py` - text replacement dialog and user interaction.
-- `SRC/controller.py` - coordination layer between UI and hotkey handlers.
-- `SRC/hotkeys_handlers.py` - actions executed by hotkeys.
-- `SRC/replacetext.py` - text conversion between Russian and English keyboard layouts.
-- `SRC/windows_hotkeys.py` - global hotkey registration through WinAPI.
-- `SRC/ll_keyboard.py` - low-level keyboard hook for special keys.
-- `SRC/send_input_keys.py` - keyboard and text input through WinAPI `SendInput`.
-- `SRC/win_clipboard.py` - Windows clipboard integration.
-- `SRC/single_instance.py` - duplicate launch protection.
-- `SRC/tune_logger.py` - logging configuration.
+- `src/keyboard2.py` - application entry point, logging setup, and top-level exception handling.
+- `src/app.py` - PyQt6 application lifecycle, system tray, hotkey registration, and single-instance guard.
+- `src/main_window.py` - text replacement dialog and user interaction.
+- `src/controller.py` - coordination layer between UI and hotkey handlers.
+- `src/hotkeys_handlers.py` - actions executed by hotkeys.
+- `src/replacetext.py` - text conversion between Russian and English keyboard layouts.
+- `src/windows_hotkeys.py` - global hotkey registration through WinAPI.
+- `src/ll_keyboard.py` - low-level keyboard hook for special keys.
+- `src/send_input_keys.py` - keyboard and text input through WinAPI `SendInput`.
+- `src/win_clipboard.py` - Windows clipboard integration.
+- `src/single_instance.py` - duplicate launch protection.
+- `src/tune_logger.py` - logging configuration.
 
 ## Technical Details
 

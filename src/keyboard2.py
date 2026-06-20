@@ -25,9 +25,9 @@ import logging as lg
 
 logger = lg.getLogger(__name__)
 
-from SRC.tune_logger import TuneLogger
-from SRC.app import StartApp
-from SRC.constants import C
+from src.tune_logger import TuneLogger
+from src.app import StartApp
+from src.constants import C
 
 
 def excepthook(exc_type, exc_value, exc_tb):

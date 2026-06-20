@@ -10,10 +10,10 @@ from PyQt6.QtCore import QTimer
 from PyQt6.QtGui import QColor
 from PyQt6.QtWidgets import QPushButton, QMessageBox
 
-from SRC.hotkeys_handlers import HotkeysHandlers
-from SRC.controller import Controller
-from SRC.constants import C
-from SRC.win_clipboard import (
+from src.hotkeys_handlers import HotkeysHandlers
+from src.controller import Controller
+from src.constants import C
+from src.win_clipboard import (
     get_clipboard_text as win_get_clipboard_text,
     set_clipboard_text as win_set_clipboard_text,
     get_clipboard_sequence_number,

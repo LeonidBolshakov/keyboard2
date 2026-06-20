@@ -2,7 +2,7 @@ import logging
 
 import pytest
 
-from SRC.try_log import log_exceptions
+from src.try_log import log_exceptions
 
 
 def test_log_exceptions_suppresses_exception_by_default(caplog) -> None:
@@ -11,7 +11,7 @@ def test_log_exceptions_suppresses_exception_by_default(caplog) -> None:
 
     wrapped = log_exceptions(name="custom failure")(fail)
 
-    with caplog.at_level(logging.ERROR, logger="SRC.try_log"):
+    with caplog.at_level(logging.ERROR, logger="src.try_log"):
         assert wrapped() is None
 
     assert "custom failure" in caplog.text
@@ -24,7 +24,7 @@ def test_log_exceptions_reraises_when_requested(caplog) -> None:
 
     wrapped = log_exceptions(name="reraised failure", reraise=True)(fail)
 
-    with caplog.at_level(logging.ERROR, logger="SRC.try_log"):
+    with caplog.at_level(logging.ERROR, logger="src.try_log"):
         with pytest.raises(RuntimeError, match="boom"):
             wrapped()
 
@@ -36,7 +36,7 @@ def test_log_exceptions_can_be_used_without_parentheses(caplog) -> None:
     def fail() -> None:
         raise LookupError("boom")
 
-    with caplog.at_level(logging.ERROR, logger="SRC.try_log"):
-        assert fail() is None
+    with caplog.at_level(logging.ERROR, logger="src.try_log"):
+        fail()
 
     assert "test_log_exceptions_can_be_used_without_parentheses" in caplog.text

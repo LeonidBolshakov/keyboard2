@@ -90,6 +90,9 @@ LowLevelKeyboardProc = ctypes.WINFUNCTYPE(
 # Флаг для события клавиатуры:
 KEY_EVENT_F_KEYUP = 0x0002  # означает "отпускание клавиши"
 
+# noinspection PyDeprecation
+LPKBDLLHOOKSTRUCT = ctypes.POINTER(KBD_LL_HOOK_STRUCT)
+
 user32 = ctypes.WinDLL("user32", use_last_error=True)  # Функции работы с окнами/вводом
 kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # Общесистемные функции
 
@@ -175,7 +178,7 @@ class LowLevelKeyboardHook:
         if wParam not in _KEY:
             return user32.CallNextHookEx(self._hook_id, nCode, wParam, lParam)
 
-        kb = ctypes.cast(lParam, ctypes.POINTER(KBD_LL_HOOK_STRUCT)).contents
+        kb = ctypes.cast(lParam, LPKBDLLHOOKSTRUCT).contents
         is_keyup = (wParam in _KEY_UP) or bool(kb.flags & LL_KHF_UP)
 
         if is_keyup:
@@ -236,7 +239,7 @@ class LowLevelKeyboardHook:
 
 
 def reset_caps_lock():
-    state = ctypes.windll.user32.GetKeyState(0x14)
+    state = user32.GetKeyState(0x14)
     if state & 1:  # включен
-        ctypes.windll.user32.keybd_event(Keys.VK_CAPITAL, 0, 0, 0)
-        ctypes.windll.user32.keybd_event(Keys.VK_CAPITAL, 0, KEY_EVENT_F_KEYUP, 0)
+        user32.keybd_event(Keys.VK_CAPITAL, 0, 0, 0)
+        user32.keybd_event(Keys.VK_CAPITAL, 0, KEY_EVENT_F_KEYUP, 0)

@@ -1,4 +1,4 @@
-from SRC.symbols import en_to_ru
+from src.symbols import en_to_ru
 
 
 def test_layout_mapping_contains_expected_letters_and_punctuation() -> None:

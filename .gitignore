@@ -12,3 +12,4 @@ build/
 *.log
 debug.py
 .pytest_cache/
+.pytest_tmp/

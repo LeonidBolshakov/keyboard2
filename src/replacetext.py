@@ -1,6 +1,6 @@
 """Класс для замены символов, находящихся на одной клавише"""
 
-from SRC.symbols import en_to_ru
+from src.symbols import en_to_ru
 
 
 class ReplaceText:

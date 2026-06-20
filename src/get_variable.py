@@ -21,7 +21,7 @@ logger = getLogger(__name__)
 
 from dotenv import load_dotenv
 
-from SRC.constants import C
+from src.constants import C
 
 
 class Variables:

@@ -1,5 +1,5 @@
-from SRC.replacetext import ReplaceText
-from SRC.symbols import en_to_ru
+from src.replacetext import ReplaceText
+from src.symbols import en_to_ru
 
 
 def test_swap_keyboard_register_common_phrases() -> None:

@@ -15,6 +15,7 @@ VK_RETURN = 0x0D
 VK_CONTROL = 0x11
 
 
+# noinspection DuplicatedCode
 # структуры SendInput
 class MOUSE_INPUT(ctypes.Structure):
 
@@ -33,8 +34,8 @@ class KEYBDINPUT(ctypes.Structure):
         ("wVk", wintypes.WORD),  # Виртуальный код VK. При SCANCODE или UNICODE = 0.
         ("wScan", wintypes.WORD),
         # с KEY_EVENT_F_SCANCODE — скан-код (Set 1).
-        # с KEY_EVENT_F_UNICODE — UTF-16 код UTF-16 символа.
-        # иначе игнорируется, держите 0.
+        # с KEY_EVENT_F_UNICODE — UTF-16 код UTF-16 символа,
+        # иначе игнорируется.
         ("dwFlags", wintypes.DWORD),
         # KEY_EVENT_F_KEYUP (0x0002) — отпускание; без него — нажатие.
         # KEY_EVENT_F_SCANCODE (0x0008) — брать wScan как скан-код, wVk=0.
@@ -133,7 +134,7 @@ class SendInputKeyboard(object):
         Отправляет сочетание Ctrl+<vk> через SendInput.
 
         Параметры:
-            vk (int): Виртуальный код клавиши (VK_*).
+            vk (int): Виртуальный код клавиши (VK_*)
             hold_ms (int|float): Время удержания целевой клавиши в мс.
                 Нормализуется в диапазон 0..1000. 0 = без удержания.
 
@@ -227,7 +228,7 @@ class SendInputKeyboard(object):
         Построить INPUT для одной кодовая единица (UTF-16) (KEY_EVENT_F_UNICODE).
         Примечание: если исходные данные в UTF-8, сначала декодируйте в str
         и используйте _send_unicode_char/type_text. Непосредственно UTF-8
-        в SendInput не передаётся..
+        в SendInput не передаётся.
 
         Параметры:
           code_unit: кодовая единица (UTF-16) (в т. ч. суррогаты).
@@ -255,7 +256,7 @@ class SendInputKeyboard(object):
         Отправить один символ Unicode в активное окно.
 
         Правила:
-          - '\\n' отправляется как VK_RETURN (некоторые элемент управления не принимают UNICODE-Enter).
+          - \\n отправляется как VK_RETURN (некоторые элемент управления не принимают UNICODE-Enter).
           - Символы ≤ U+FFFF — одна кодовая единица (UTF-16) (нажатие+отпускание).
           - Символы > U+FFFF — суррогатная пара: high↓, low↓, low↑, high↑.
 

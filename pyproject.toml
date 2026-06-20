@@ -1,6 +1,7 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+addopts = "--basetemp=.pytest_tmp"
 
 [tool.black]
 line-length = 88
@@ -19,7 +20,7 @@ extend-exclude = '''
 
 [tool.mypy]
 python_version = "3.14"
-files = ["SRC", "tests"]
+files = ["src", "tests"]
 ignore_missing_imports = true
 warn_unused_configs = true
 no_implicit_optional = true

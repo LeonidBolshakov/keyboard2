@@ -1,6 +1,6 @@
 import pytest
 
-from SRC.windows_hotkeys import HI_WORD, LO_WORD, HotkeysWin
+from src.windows_hotkeys import HI_WORD, LO_WORD, HotkeysWin
 
 
 def test_lo_word_returns_low_16_bits() -> None:

@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 from PyQt6 import QtWidgets, QtGui
 
 
-from SRC.constants import C
-from SRC.functions import get_exe_directory
+from src.constants import C
+from src.functions import get_exe_directory
 
 
 class Tray(QtWidgets.QSystemTrayIcon):

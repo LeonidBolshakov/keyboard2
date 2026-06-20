@@ -28,14 +28,12 @@
 
 ## Основные горячие клавиши
 
-| Горячая клавиша | Действие                                                               |
-| --------------- | ---------------------------------------------------------------------- |
-| `Caps Lock`     | Переключить раскладку клавиатуры                                       |
-| `Scroll Lock`   | Исправить выделенный текст, набранный в другой раскладке               |
-| `Ctrl+F3`       | Вставить e-mail из настроек                                            |
-| `Ctrl+F4`       | Вставить телефон из настроек                                           |
-| `Ctrl+F5`       | Запустить выбранную внешнюю программу, например собственный калькулятор |
-| `Ctrl+F9`       | Вставить подпись из настроек                                           |
+- `Caps Lock` - переключить раскладку клавиатуры.
+- `Scroll Lock` - исправить выделенный текст, набранный в другой раскладке.
+- `Ctrl+F3` - вставить e-mail из настроек.
+- `Ctrl+F4` - вставить телефон из настроек.
+- `Ctrl+F5` - запустить выбранную внешнюю программу, например собственный калькулятор.
+- `Ctrl+F9` - вставить подпись из настроек.
 
 ## Пример сценария
 
@@ -62,13 +60,13 @@ ghbdsn
 Пример `.env`:
 
 ```env
-e-mail=user@example.com
-telephone=+7 000 000-00-00
-signature=С уважением,\nИмя Фамилия
-calculator=C:\Windows\System32\calc.exe
-console_log_level=INFO
-file_log_level_info=DEBUG
-file_log_path=C:\Temp\keyboard2.log
+EMAIL=user@example.com
+TELEPHONE="+7 000 000-00-00"
+SIGNATURE="С уважением,\nИмя Фамилия"
+CALCULATOR=C:\Windows\System32\calc.exe
+CONSOLE_LOG_LEVEL=INFO
+FILE_LOG_LEVEL_INFO=DEBUG
+FILE_LOG_PATH=C:\Temp\keyboard2.log
 ```
 
 Настоящий `.env` не должен попадать в репозиторий. Для публичного примера в проекте есть файл `.env.example`.
@@ -81,13 +79,13 @@ file_log_path=C:\Temp\keyboard2.log
 python -m venv .venv
 .\.venv\Scripts\activate
 pip install -r requirements.txt
-python .\SRC\keyboard2.py
+python .\src\keyboard2.py
 ```
 
 Запуск в быстром режиме:
 
 ```powershell
-python .\SRC\keyboard2.py --fast
+python .\src\keyboard2.py --fast
 ```
 
 ## Сборка EXE
@@ -118,7 +116,7 @@ pytest
 Проверка форматирования и типов:
 
 ```powershell
-black --check SRC tests
+black --check src tests
 mypy
 ```
 
@@ -126,18 +124,18 @@ mypy
 
 Проект разделен на несколько модулей:
 
-- `SRC/keyboard2.py` - точка входа приложения, настройка логирования и верхнеуровневая обработка ошибок.
-- `SRC/app.py` - жизненный цикл PyQt6-приложения, системный трей, регистрация горячих клавиш, single-instance guard.
-- `SRC/main_window.py` - диалог исправления текста и пользовательское взаимодействие.
-- `SRC/controller.py` - связующий слой между UI и обработчиками горячих клавиш.
-- `SRC/hotkeys_handlers.py` - действия, выполняемые по горячим клавишам.
-- `SRC/replacetext.py` - преобразование текста между русской и английской раскладками.
-- `SRC/windows_hotkeys.py` - регистрация глобальных горячих клавиш через WinAPI.
-- `SRC/ll_keyboard.py` - низкоуровневый keyboard hook для специальных клавиш.
-- `SRC/send_input_keys.py` - ввод клавиш и текста через WinAPI `SendInput`.
-- `SRC/win_clipboard.py` - работа с буфером обмена Windows.
-- `SRC/single_instance.py` - защита от повторного запуска приложения.
-- `SRC/tune_logger.py` - настройка логирования.
+- `src/keyboard2.py` - точка входа приложения, настройка логирования и верхнеуровневая обработка ошибок.
+- `src/app.py` - жизненный цикл PyQt6-приложения, системный трей, регистрация горячих клавиш, single-instance guard.
+- `src/main_window.py` - диалог исправления текста и пользовательское взаимодействие.
+- `src/controller.py` - связующий слой между UI и обработчиками горячих клавиш.
+- `src/hotkeys_handlers.py` - действия, выполняемые по горячим клавишам.
+- `src/replacetext.py` - преобразование текста между русской и английской раскладками.
+- `src/windows_hotkeys.py` - регистрация глобальных горячих клавиш через WinAPI.
+- `src/ll_keyboard.py` - низкоуровневый keyboard hook для специальных клавиш.
+- `src/send_input_keys.py` - ввод клавиш и текста через WinAPI `SendInput`.
+- `src/win_clipboard.py` - работа с буфером обмена Windows.
+- `src/single_instance.py` - защита от повторного запуска приложения.
+- `src/tune_logger.py` - настройка логирования.
 
 ## Технические детали
 

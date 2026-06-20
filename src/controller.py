@@ -8,12 +8,12 @@
 
 from typing import Callable
 
-from SRC.windows_hotkeys import HotkeysWin
-from SRC.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers
-from SRC.try_log import log_exceptions
-from SRC.send_input_keys import SendInputKeyboard
-import SRC.ll_keyboard as llk
-from SRC.constants import C
+from src.windows_hotkeys import HotkeysWin
+from src.hotkeys_handlers import HotkeysHandlers as HotkeysHandlers
+from src.try_log import log_exceptions
+from src.send_input_keys import SendInputKeyboard
+import src.ll_keyboard as llk
+from src.constants import C
 
 
 class Controller:
@@ -49,8 +49,9 @@ class Controller:
             self.keys.VK_CAPITAL: self.hotkeys_handlers.on_caps,
             self.keys.VK_SCROLL: self.hotkeys_handlers.on_scroll,
         }
-        self.llk_hook = llk.LowLevelKeyboardHook(hotkeys_llk)
-        self.llk_hook.install()
+        hook = llk.LowLevelKeyboardHook(hotkeys_llk)
+        hook.install()
+        self.llk_hook = hook
 
     @log_exceptions
     def on_hotkey(self, _hk_id: int, vk: int, _mods: int) -> None:
