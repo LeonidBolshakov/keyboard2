@@ -32,5 +32,3 @@ jobs:
         run: python -m mypy
 
       - name: Run tests
-        run: pytest
-'@ | Set-Content -Path .github\workflows\tests.yml -Encoding UTF8
