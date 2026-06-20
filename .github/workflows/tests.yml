@@ -31,4 +31,4 @@ jobs:
         run: python -m mypy
 
       - name: Run tests
-	run: pytest
+        run: pytest
