@@ -16,9 +16,7 @@ I built this tool to remove several frustrating keyboard workflows from my daily
 
 ## Demo
 
-[Watch a short demo](docs/images/keyboard2-demo.mp4)
-
-[Watch a short demo](docs/images/keyboard2-demo.mp4)
+![Text correction demo](docs/images/keyboard2-demo.gif)
 
 ## Features
 
