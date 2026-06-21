@@ -14,6 +14,12 @@ I built this tool to remove several frustrating keyboard workflows from my daily
 
 ![Selected text replacement dialog](docs/images/keyboard2-dialog.png)
 
+## Demo
+
+[Watch a short demo](docs/images/keyboard2-demo.mp4)
+
+[Watch a short demo](docs/images/keyboard2-demo.mp4)
+
 ## Features
 
 - Switches keyboard layout with one key: `Caps Lock`.
